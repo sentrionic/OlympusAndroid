@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/nav_create_article"
+    app:startDestination="@id/createArticleFragment">
+
+    <fragment android:id="@+id/createArticleFragment"
+        android:name="xyz.harmonyapp.olympusblog.ui.main.create.CreateArticleFragment"
+        android:label="@string/fragment_create_article"
+        tools:layout="@layout/fragment_create_article">
+
+    </fragment>
+</navigation>

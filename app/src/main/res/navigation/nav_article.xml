@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_article"
+    app:startDestination="@id/articleFragment">
+
+    <fragment
+        android:id="@+id/articleFragment"
+        android:name="xyz.harmonyapp.olympusblog.ui.main.article.ArticleFragment"
+        android:label="@string/fragment_article"
+        tools:layout="@layout/fragment_article">
+
+
+        <action
+            android:id="@+id/action_articleFragment_to_viewArticleFragment"
+            app:destination="@id/viewArticleFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/viewArticleFragment"
+        android:name="xyz.harmonyapp.olympusblog.ui.main.article.ViewArticleFragment"
+        android:label="@string/fragment_view_article"
+        tools:layout="@layout/fragment_view_article">
+
+
+        <action
+            android:id="@+id/action_viewArticleFragment_to_updateArticleFragment"
+            app:destination="@id/updateArticleFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+
+        <action
+            android:id="@+id/action_viewArticleFragment_to_home"
+            app:destination="@id/articleFragment"
+            app:enterAnim="@anim/fade_in"
+            app:exitAnim="@anim/fade_out"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/fade_out"
+            app:popUpTo="@+id/nav_article"
+            app:popUpToInclusive="true" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/updateArticleFragment"
+        android:name="xyz.harmonyapp.olympusblog.ui.main.article.UpdateArticleFragment"
+        android:label="@string/fragment_update_article"
+        tools:layout="@layout/fragment_update_article">
+
+        <action
+            android:id="@+id/action_updateArticleFragment_to_home"
+            app:destination="@id/articleFragment"
+            app:enterAnim="@anim/fade_in"
+            app:exitAnim="@anim/fade_out"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/fade_out"
+            app:popUpTo="@+id/nav_article"
+            app:popUpToInclusive="true" />
+
+    </fragment>
+</navigation> 
