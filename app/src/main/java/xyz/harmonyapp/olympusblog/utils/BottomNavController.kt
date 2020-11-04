@@ -1,7 +1,9 @@
 package xyz.harmonyapp.olympusblog.utils
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
+import android.os.Parcelable
 import androidx.annotation.IdRes
 import androidx.annotation.NavigationRes
 import androidx.fragment.app.Fragment
@@ -10,7 +12,9 @@ import androidx.fragment.app.FragmentManager
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.fragment.findNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import kotlinx.android.parcel.Parcelize
 import xyz.harmonyapp.olympusblog.R
 import xyz.harmonyapp.olympusblog.utils.BottomNavController.OnNavigationReselectedListener
 
@@ -20,6 +24,10 @@ import xyz.harmonyapp.olympusblog.utils.BottomNavController.OnNavigationReselect
  * https://stackoverflow.com/questions/50577356/android-jetpack-navigation-bottomnavigationview-with-youtube-or-instagram-like#_=_
  * @property navigationBackStack: Backstack for the bottom navigation
  */
+
+const val BOTTOM_NAV_BACKSTACK_KEY =
+    "xyz.harmonyapp.olympusblog.utils.BottomNavController.bottom_nav_backstack"
+
 class BottomNavController(
     val context: Context,
     @IdRes val containerId: Int,
@@ -28,7 +36,7 @@ class BottomNavController(
     val navGraphProvider: NavGraphProvider
 ) {
     private val TAG: String = "AppDebug"
-    private val navigationBackStack = BackStack.of(appStartDestinationId)
+    lateinit var navigationBackStack: BackStack
     lateinit var activity: Activity
     lateinit var fragmentManager: FragmentManager
     lateinit var navItemChangeListener: OnNavigationItemChanged
@@ -39,6 +47,12 @@ class BottomNavController(
             activity = context
             fragmentManager = (activity as FragmentActivity).supportFragmentManager
         }
+    }
+
+    fun setupBottomNavigationBackStack(previousBackStack: BackStack?) {
+        navigationBackStack = previousBackStack?.let {
+            it
+        } ?: BackStack.of(appStartDestinationId)
     }
 
     fun onNavigationItemSelected(itemId: Int = navigationBackStack.last()): Boolean {
@@ -69,26 +83,24 @@ class BottomNavController(
         return true
     }
 
+    @SuppressLint("RestrictedApi")
     fun onBackPressed() {
-        val childFragmentManager = fragmentManager.findFragmentById(containerId)!!
-            .childFragmentManager
-        when {
-            // We should always try to go back on the child fragment manager stack before going to
-            // the navigation stack. It's important to use the child fragment manager instead of the
-            // NavController because if the user change tabs super fast commit of the
-            // supportFragmentManager may mess up with the NavController child fragment manager back
-            // stack
+        val navController = fragmentManager.findFragmentById(containerId)!!
+            .findNavController()
 
-            childFragmentManager.popBackStackImmediate() -> {
+        when {
+            navController.backStack.size > 2 ->{
+                navController.popBackStack()
             }
+
             // Fragment back stack is empty so try to go back on the navigation stack
             navigationBackStack.size > 1 -> {
+
                 // Remove last item from back stack
                 navigationBackStack.removeLast()
 
                 // Update the container with new fragment
                 onNavigationItemSelected()
-
             }
             // If the stack has only one and it's not the navigation home we should
             // ensure that the application always leave from startDestination
@@ -98,11 +110,14 @@ class BottomNavController(
                 onNavigationItemSelected()
             }
             // Navigation stack is empty, so finish the activity
-            else -> activity.finish()
+            else -> {
+                activity.finish()
+            }
         }
     }
 
-    private class BackStack : ArrayList<Int>() {
+    @Parcelize
+    class BackStack : ArrayList<Int>(), Parcelable {
         companion object {
             fun of(vararg elements: Int): BackStack {
                 val b = BackStack()

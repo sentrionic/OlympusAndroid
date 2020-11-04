@@ -45,18 +45,20 @@ class ViewArticleFragment : BaseArticleFragment() {
 
     fun subscribeObservers() {
         viewModel.dataState.observe(viewLifecycleOwner, { dataState ->
-            stateChangeListener.onDataStateChange(dataState)
+            if (dataState != null) {
+                stateChangeListener.onDataStateChange(dataState)
 
-            dataState.data?.let { data ->
-                data.data?.getContentIfNotHandled()?.let { viewState ->
-                    viewModel.setIsAuthorOfArticle(
-                        viewState.viewArticleFields.isAuthorOfArticle
-                    )
-                }
-                data.response?.peekContent()?.let { response ->
-                    if (response.message.equals(SUCCESS_ARTICLE_DELETED)) {
-                        viewModel.removeDeletedArticle()
-                        findNavController().popBackStack()
+                dataState.data?.let { data ->
+                    data.data?.getContentIfNotHandled()?.let { viewState ->
+                        viewModel.setIsAuthorOfArticle(
+                            viewState.viewArticleFields.isAuthorOfArticle
+                        )
+                    }
+                    data.response?.peekContent()?.let { response ->
+                        if (response.message.equals(SUCCESS_ARTICLE_DELETED)) {
+                            viewModel.removeDeletedArticle()
+                            findNavController().popBackStack()
+                        }
                     }
                 }
             }
@@ -80,11 +82,11 @@ class ViewArticleFragment : BaseArticleFragment() {
     private fun setArticleProperties(article: Article) {
 
         with(binding) {
-            requestManager
+            mainDependencyProvider.getGlideRequestManager()
                 .load(article.image)
                 .into(articleImage)
 
-            requestManager
+            mainDependencyProvider.getGlideRequestManager()
                 .load(article.profileImage)
                 .diskCacheStrategy(DiskCacheStrategy.NONE)
                 .into(profilePhoto)

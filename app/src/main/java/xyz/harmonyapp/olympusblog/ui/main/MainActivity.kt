@@ -8,9 +8,12 @@ import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.navigation.NavController
+import com.bumptech.glide.RequestManager
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import xyz.harmonyapp.olympusblog.R
 import xyz.harmonyapp.olympusblog.databinding.ActivityMainBinding
+import xyz.harmonyapp.olympusblog.models.AUTH_TOKEN_BUNDLE_KEY
+import xyz.harmonyapp.olympusblog.models.AuthToken
 import xyz.harmonyapp.olympusblog.ui.BaseActivity
 import xyz.harmonyapp.olympusblog.ui.auth.AuthActivity
 import xyz.harmonyapp.olympusblog.ui.main.account.BaseAccountFragment
@@ -20,17 +23,27 @@ import xyz.harmonyapp.olympusblog.ui.main.article.BaseArticleFragment
 import xyz.harmonyapp.olympusblog.ui.main.article.UpdateArticleFragment
 import xyz.harmonyapp.olympusblog.ui.main.article.ViewArticleFragment
 import xyz.harmonyapp.olympusblog.ui.main.create.BaseCreateArticleFragment
+import xyz.harmonyapp.olympusblog.utils.BOTTOM_NAV_BACKSTACK_KEY
 import xyz.harmonyapp.olympusblog.utils.BottomNavController
 import xyz.harmonyapp.olympusblog.utils.setUpNavigation
+import xyz.harmonyapp.olympusblog.viewmodels.ViewModelProviderFactory
+import javax.inject.Inject
 
 class MainActivity : BaseActivity(),
     BottomNavController.NavGraphProvider,
     BottomNavController.OnNavigationGraphChanged,
-    BottomNavController.OnNavigationReselectedListener {
+    BottomNavController.OnNavigationReselectedListener,
+    MainDependencyProvider {
 
     private lateinit var binding: ActivityMainBinding
 
     private lateinit var bottomNavigationView: BottomNavigationView
+
+    @Inject
+    lateinit var providerFactory: ViewModelProviderFactory
+
+    @Inject
+    lateinit var requestManager: RequestManager
 
     private val bottomNavController by lazy(LazyThreadSafetyMode.NONE) {
         BottomNavController(
@@ -49,13 +62,38 @@ class MainActivity : BaseActivity(),
         setContentView(view)
 
         setupActionBar()
+        setupBottomNavigationView(savedInstanceState)
+
+        subscribeObservers()
+        restoreSession(savedInstanceState)
+    }
+
+    private fun setupBottomNavigationView(savedInstanceState: Bundle?) {
         bottomNavigationView = binding.bottomNavigationView
         bottomNavigationView.setUpNavigation(bottomNavController, this)
         if (savedInstanceState == null) {
+            bottomNavController.setupBottomNavigationBackStack(null)
             bottomNavController.onNavigationItemSelected()
+        } else {
+            (savedInstanceState[BOTTOM_NAV_BACKSTACK_KEY] as IntArray?)?.let { items ->
+                val backstack = BottomNavController.BackStack()
+                backstack.addAll(items.toTypedArray())
+                bottomNavController.setupBottomNavigationBackStack(backstack)
+            }
         }
+    }
 
-        subscribeObservers()
+
+    private fun restoreSession(savedInstanceState: Bundle?) {
+        savedInstanceState?.get(AUTH_TOKEN_BUNDLE_KEY)?.let { authToken ->
+            sessionManager.setValue(authToken as AuthToken)
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putParcelable(AUTH_TOKEN_BUNDLE_KEY, sessionManager.cachedToken.value)
+        outState.putIntArray(BOTTOM_NAV_BACKSTACK_KEY, bottomNavController.navigationBackStack.toIntArray())
     }
 
     private fun subscribeObservers() {
@@ -166,4 +204,8 @@ class MainActivity : BaseActivity(),
         }
         return super.onOptionsItemSelected(item)
     }
+
+    override fun getVMProviderFactory(): ViewModelProviderFactory = providerFactory
+
+    override fun getGlideRequestManager(): RequestManager = requestManager
 }

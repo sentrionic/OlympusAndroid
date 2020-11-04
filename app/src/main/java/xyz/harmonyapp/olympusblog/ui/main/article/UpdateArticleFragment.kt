@@ -63,14 +63,16 @@ class UpdateArticleFragment : BaseArticleFragment() {
 
     fun subscribeObservers() {
         viewModel.dataState.observe(viewLifecycleOwner, Observer { dataState ->
-            stateChangeListener.onDataStateChange(dataState)
-            dataState.data?.let { data ->
-                data.data?.getContentIfNotHandled()?.let { viewState ->
+            if (dataState != null) {
+                stateChangeListener.onDataStateChange(dataState)
+                dataState.data?.let { data ->
+                    data.data?.getContentIfNotHandled()?.let { viewState ->
 
-                    // if this is not null, the article was updated
-                    viewState.viewArticleFields.article?.let { article ->
-                        viewModel.onArticleUpdateSuccess(article).let {
-                            findNavController().popBackStack()
+                        // if this is not null, the article was updated
+                        viewState.viewArticleFields.article?.let { article ->
+                            viewModel.onArticleUpdateSuccess(article).let {
+                                findNavController().popBackStack()
+                            }
                         }
                     }
                 }
@@ -97,7 +99,7 @@ class UpdateArticleFragment : BaseArticleFragment() {
     ) {
 
         with(binding) {
-            requestManager
+            mainDependencyProvider.getGlideRequestManager()
                 .load(image)
                 .into(articleImage)
             articleTitle.setText(title)

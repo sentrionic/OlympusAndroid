@@ -57,10 +57,6 @@ class ArticleFragment : BaseArticleFragment(),
 
         initRecyclerView()
         subscribeObservers()
-
-        if (savedInstanceState == null) {
-            viewModel.loadFirstPage()
-        }
     }
 
     private fun handlePagination(dataState: DataState<ArticleViewState>) {
@@ -88,7 +84,7 @@ class ArticleFragment : BaseArticleFragment(),
             if (viewState != null) {
                 recyclerAdapter.apply {
                     preloadGlideImages(
-                        requestManager = requestManager,
+                        requestManager = mainDependencyProvider.getGlideRequestManager(),
                         list = viewState.articleFields.articleList
                     )
 
@@ -109,7 +105,10 @@ class ArticleFragment : BaseArticleFragment(),
             removeItemDecoration(topSpacingDecorator) // does nothing if not applied already
             addItemDecoration(topSpacingDecorator)
 
-            recyclerAdapter = ArticleListAdapter(requestManager, this@ArticleFragment)
+            recyclerAdapter = ArticleListAdapter(
+                mainDependencyProvider.getGlideRequestManager(),
+                this@ArticleFragment
+            )
             addOnScrollListener(object : RecyclerView.OnScrollListener() {
 
                 override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
@@ -253,9 +252,32 @@ class ArticleFragment : BaseArticleFragment(),
         return super.onOptionsItemSelected(item)
     }
 
+    override fun restoreListPosition() {
+        viewModel.viewState.value?.articleFields?.layoutManagerState?.let { lmState ->
+            if (_binding != null) {
+                binding.articleRecyclerview.layoutManager?.onRestoreInstanceState(lmState)
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.refreshFromCache()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        saveLayoutManagerState()
+    }
+
+    private fun saveLayoutManagerState() {
+        binding.articleRecyclerview.layoutManager?.onSaveInstanceState()?.let { lmState ->
+            viewModel.setLayoutManagerState(lmState)
+        }
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         binding.articleRecyclerview.adapter = null
-        _binding = null
     }
 }

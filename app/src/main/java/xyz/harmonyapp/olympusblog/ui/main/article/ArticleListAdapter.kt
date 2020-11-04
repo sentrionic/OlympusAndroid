@@ -146,7 +146,10 @@ class ArticleListAdapter(
         val newList = articleList?.toMutableList()
         if (isQueryExhausted)
             newList?.add(NO_MORE_RESULTS_ARTICLE_MARKER)
-        differ.submitList(newList)
+        val commitCallback = Runnable {
+            interaction?.restoreListPosition()
+        }
+        differ.submitList(newList, commitCallback)
     }
 
     class ArticleViewHolder
@@ -189,5 +192,6 @@ class ArticleListAdapter(
 
     interface Interaction {
         fun onItemSelected(position: Int, item: Article)
+        fun restoreListPosition()
     }
 }

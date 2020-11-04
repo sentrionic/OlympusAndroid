@@ -2,12 +2,14 @@ package xyz.harmonyapp.olympusblog.ui.auth
 
 import android.os.Bundle
 import android.view.View
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import dagger.android.support.DaggerFragment
+import xyz.harmonyapp.olympusblog.di.Injectable
 import xyz.harmonyapp.olympusblog.viewmodels.ViewModelProviderFactory
 import javax.inject.Inject
 
-abstract class BaseAuthFragment : DaggerFragment() {
+abstract class BaseAuthFragment : Fragment(), Injectable {
 
     val TAG: String = "AppDebug"
 

@@ -145,6 +145,74 @@ constructor(
         }.asLiveData()
     }
 
+    fun restoreArticleListFromCache(
+        query: String,
+        order: String,
+        page: Int
+    ): LiveData<DataState<ArticleViewState>> {
+        return object :
+            NetworkBoundResource<ArticleListSearchResponse, List<Article>, ArticleViewState>(
+                sessionManager.isConnectedToTheInternet(),
+                false,
+                false,
+                true
+            ) {
+            override suspend fun createCacheRequestAndReturn() {
+                withContext(Dispatchers.Main) {
+                    result.addSource(loadFromCache()) { viewState ->
+                        viewState.articleFields.isQueryInProgress = false
+                        if (page * PAGINATION_PAGE_SIZE > viewState.articleFields.articleList.size) {
+                            viewState.articleFields.isQueryExhausted = true
+                        }
+                        onCompleteJob(
+                            DataState.data(
+                                viewState,
+                                null
+                            )
+                        )
+                    }
+                }
+            }
+
+            override suspend fun handleApiSuccessResponse(
+                response: ApiSuccessResponse<ArticleListSearchResponse>
+            ) {
+                // ignore
+            }
+
+            override fun createCall(): LiveData<GenericApiResponse<ArticleListSearchResponse>> {
+                return AbsentLiveData.create()
+            }
+
+            override fun loadFromCache(): LiveData<ArticleViewState> {
+                return articlesDao.returnOrderedQuery(query = query, page = page, order = order)
+                    .switchMap {
+                        object : LiveData<ArticleViewState>() {
+                            override fun onActive() {
+                                super.onActive()
+                                value = ArticleViewState(
+                                    ArticleFields(
+                                        articleList = it,
+                                        isQueryInProgress = true
+                                    )
+                                )
+                            }
+                        }
+                    }
+            }
+
+            override suspend fun updateLocalDb(cacheObject: List<Article>?) {
+                // ignore
+            }
+
+            override fun setJob(job: Job) {
+                addJob("restoreBlogListFromCache", job)
+            }
+
+        }.asLiveData()
+    }
+
+
     fun checkIfAuthor(
         id: Int,
         slug: String

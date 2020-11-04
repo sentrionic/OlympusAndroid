@@ -2,12 +2,19 @@ package xyz.harmonyapp.olympusblog.ui.main.article.viewmodel
 
 import android.util.Log
 import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleStateEvent.ArticleSearchEvent
+import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleStateEvent.RestoreArticleListFromCache
 import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleViewState
 
 fun ArticleViewModel.resetPage() {
     val update = getCurrentViewStateOrNew()
     update.articleFields.page = 1
     setViewState(update)
+}
+
+fun ArticleViewModel.refreshFromCache() {
+    setQueryInProgress(true)
+    setQueryExhausted(false)
+    setStateEvent(RestoreArticleListFromCache())
 }
 
 fun ArticleViewModel.loadFirstPage() {

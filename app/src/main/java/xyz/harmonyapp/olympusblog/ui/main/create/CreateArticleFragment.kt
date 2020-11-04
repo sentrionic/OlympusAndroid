@@ -119,13 +119,15 @@ class CreateArticleFragment : BaseCreateArticleFragment() {
 
     fun subscribeObservers() {
         viewModel.dataState.observe(viewLifecycleOwner, Observer { dataState ->
-            stateChangeListener.onDataStateChange(dataState)
-            dataState.data?.let { data ->
-                data.response?.let { event ->
-                    event.peekContent().let { response ->
-                        response.message?.let { message ->
-                            if (message == SUCCESS_ARTICLE_CREATED) {
-                                viewModel.clearNewArticleFields()
+            if (dataState != null) {
+                stateChangeListener.onDataStateChange(dataState)
+                dataState.data?.let { data ->
+                    data.response?.let { event ->
+                        event.peekContent().let { response ->
+                            response.message?.let { message ->
+                                if (message == SUCCESS_ARTICLE_CREATED) {
+                                    viewModel.clearNewArticleFields()
+                                }
                             }
                         }
                     }
@@ -156,11 +158,11 @@ class CreateArticleFragment : BaseCreateArticleFragment() {
 
         with(binding) {
             if (image != null) {
-                requestManager
+                mainDependencyProvider.getGlideRequestManager()
                     .load(image)
                     .into(articleImage)
             } else {
-                requestManager
+                mainDependencyProvider.getGlideRequestManager()
                     .load(R.drawable.default_image)
                     .into(articleImage)
             }

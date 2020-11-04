@@ -1,10 +1,13 @@
 package xyz.harmonyapp.olympusblog.models
 
+import android.os.Parcelable
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.squareup.moshi.Json
+import kotlinx.android.parcel.Parcelize
 
+@Parcelize
 @Entity(tableName = "account_properties")
 data class AccountProperties(
     @Json(name = "id")
@@ -22,7 +25,7 @@ data class AccountProperties(
 
     @Json(name = "image")
     @ColumnInfo(name = "image") var image: String,
-) {
+) : Parcelable {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

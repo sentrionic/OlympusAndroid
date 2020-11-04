@@ -40,7 +40,16 @@ constructor(
         return when (stateEvent) {
 
             is ArticleSearchEvent -> {
+                clearLayoutManagerState()
                 articleRepository.searchArticles(
+                    query = getSearchQuery(),
+                    order = getOrder(),
+                    page = getPage()
+                )
+            }
+
+            is RestoreArticleListFromCache -> {
+                articleRepository.restoreArticleListFromCache(
                     query = getSearchQuery(),
                     order = getOrder(),
                     page = getPage()

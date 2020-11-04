@@ -1,6 +1,7 @@
 package xyz.harmonyapp.olympusblog.ui.main.article.viewmodel
 
 import android.net.Uri
+import android.os.Parcelable
 import xyz.harmonyapp.olympusblog.models.Article
 
 fun ArticleViewModel.setQuery(query: String) {
@@ -96,5 +97,17 @@ fun ArticleViewModel.onArticleUpdateSuccess(article: Article) {
     ) // update UpdateBlogFragment (not really necessary since navigating back)
     setArticle(article) // update ViewBlogFragment
     updateListItem(article) // update BlogFragment
+}
+
+fun ArticleViewModel.setLayoutManagerState(layoutManagerState: Parcelable) {
+    val update = getCurrentViewStateOrNew()
+    update.articleFields.layoutManagerState = layoutManagerState
+    setViewState(update)
+}
+
+fun ArticleViewModel.clearLayoutManagerState() {
+    val update = getCurrentViewStateOrNew()
+    update.articleFields.layoutManagerState = null
+    setViewState(update)
 }
 

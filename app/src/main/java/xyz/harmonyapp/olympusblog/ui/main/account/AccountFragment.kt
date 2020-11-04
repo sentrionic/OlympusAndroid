@@ -85,7 +85,7 @@ class AccountFragment : BaseAccountFragment() {
             email.text = accountProperties.email
             username.text = accountProperties.username
             bio.text = accountProperties.bio
-            requestManager
+            mainDependencyProvider.getGlideRequestManager()
                 .load(accountProperties.image)
                 .diskCacheStrategy(DiskCacheStrategy.NONE)
                 .into(profilePhoto)

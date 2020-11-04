@@ -6,6 +6,8 @@ sealed class ArticleStateEvent {
 
     class ArticleSearchEvent : ArticleStateEvent()
 
+    class RestoreArticleListFromCache: ArticleStateEvent()
+
     class CheckAuthorOfArticle: ArticleStateEvent()
 
     class DeleteArticleEvent: ArticleStateEvent()
