@@ -7,6 +7,7 @@ import kotlinx.coroutines.Job
 import xyz.harmonyapp.olympusblog.api.auth.AuthService
 import xyz.harmonyapp.olympusblog.api.auth.dto.LoginDTO
 import xyz.harmonyapp.olympusblog.api.auth.dto.RegisterDTO
+import xyz.harmonyapp.olympusblog.di.auth.AuthScope
 import xyz.harmonyapp.olympusblog.models.AccountProperties
 import xyz.harmonyapp.olympusblog.models.AuthToken
 import xyz.harmonyapp.olympusblog.persistence.AccountPropertiesDao
@@ -30,6 +31,7 @@ import xyz.harmonyapp.olympusblog.utils.SuccessHandling.Companion.RESPONSE_CHECK
 import javax.inject.Inject
 import kotlin.random.Random
 
+@AuthScope
 class AuthRepository
 @Inject
 constructor(

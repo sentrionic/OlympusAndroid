@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import okhttp3.MediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import xyz.harmonyapp.olympusblog.di.main.MainScope
 import xyz.harmonyapp.olympusblog.repository.main.CreateArticleRepository
 import xyz.harmonyapp.olympusblog.session.SessionManager
 import xyz.harmonyapp.olympusblog.ui.BaseViewModel
@@ -17,6 +18,7 @@ import xyz.harmonyapp.olympusblog.ui.main.create.state.CreateArticleViewState
 import xyz.harmonyapp.olympusblog.ui.main.create.state.CreateArticleViewState.NewArticleFields
 import javax.inject.Inject
 
+@MainScope
 class CreateArticleViewModel
 @Inject
 constructor(

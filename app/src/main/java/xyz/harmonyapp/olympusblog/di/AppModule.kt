@@ -28,8 +28,9 @@ import xyz.harmonyapp.olympusblog.utils.PreferenceKeys
 import javax.inject.Singleton
 
 @Module
-class AppModule {
+object AppModule {
 
+    @JvmStatic
     @Singleton
     @Provides
     fun provideSharedPreferences(application: Application): SharedPreferences {
@@ -39,24 +40,28 @@ class AppModule {
         )
     }
 
+    @JvmStatic
     @Singleton
     @Provides
     fun provideSharedPrefsEditor(sharedPreferences: SharedPreferences): SharedPreferences.Editor {
         return sharedPreferences.edit()
     }
 
+    @JvmStatic
     @Singleton
     @Provides
     fun provideMoshiBuilder(): Moshi {
         return Moshi.Builder().build();
     }
 
+    @JvmStatic
     @Singleton
     @Provides
     fun provideCookieJar(application: Application): ClearableCookieJar {
         return PersistentCookieJar(SetCookieCache(), SharedPrefsCookiePersistor(application))
     }
 
+    @JvmStatic
     @Singleton
     @Provides
     fun provideOkHttpClient(cookieJar: ClearableCookieJar): OkHttpClient {
@@ -66,6 +71,7 @@ class AppModule {
             .build()
     }
 
+    @JvmStatic
     @Singleton
     @Provides
     fun provideRetrofitBuilder(moshiBuilder: Moshi, client: OkHttpClient): Retrofit.Builder {
@@ -76,7 +82,7 @@ class AppModule {
             .client(client)
     }
 
-
+    @JvmStatic
     @Singleton
     @Provides
     fun provideAppDb(app: Application): AppDatabase {
@@ -86,18 +92,21 @@ class AppModule {
             .build()
     }
 
+    @JvmStatic
     @Singleton
     @Provides
     fun provideAuthTokenDao(db: AppDatabase): AuthTokenDao {
         return db.getAuthTokenDao()
     }
 
+    @JvmStatic
     @Singleton
     @Provides
     fun provideAccountPropertiesDao(db: AppDatabase): AccountPropertiesDao {
         return db.getAccountPropertiesDao()
     }
 
+    @JvmStatic
     @Singleton
     @Provides
     fun provideRequestOptions(): RequestOptions {
@@ -106,6 +115,7 @@ class AppModule {
             .error(R.drawable.default_image)
     }
 
+    @JvmStatic
     @Singleton
     @Provides
     fun provideGlideInstance(

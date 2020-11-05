@@ -11,18 +11,34 @@ import android.view.animation.TranslateAnimation
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.launch
 import xyz.harmonyapp.olympusblog.databinding.FragmentForgotPasswordBinding
+import xyz.harmonyapp.olympusblog.di.auth.AuthScope
 import xyz.harmonyapp.olympusblog.ui.DataState
 import xyz.harmonyapp.olympusblog.ui.DataStateChangeListener
 import xyz.harmonyapp.olympusblog.ui.Response
 import xyz.harmonyapp.olympusblog.ui.ResponseType
 import xyz.harmonyapp.olympusblog.utils.Constants
+import javax.inject.Inject
 
-class ForgotPasswordFragment : BaseAuthFragment() {
+@AuthScope
+class ForgotPasswordFragment
+@Inject
+constructor(
+    private val viewModelFactory: ViewModelProvider.Factory
+) : Fragment() {
+
+    private val TAG: String = "AppDebug"
+
+    val viewModel: AuthViewModel by viewModels {
+        viewModelFactory
+    }
 
     lateinit var webView: WebView
 
@@ -58,6 +74,11 @@ class ForgotPasswordFragment : BaseAuthFragment() {
                 )
             }
         }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        viewModel.cancelActiveJobs()
     }
 
     override fun onCreateView(

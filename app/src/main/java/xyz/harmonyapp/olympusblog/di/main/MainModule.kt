@@ -16,8 +16,9 @@ import xyz.harmonyapp.olympusblog.repository.main.CreateArticleRepository
 import xyz.harmonyapp.olympusblog.session.SessionManager
 
 @Module
-class MainModule {
+object MainModule {
 
+    @JvmStatic
     @MainScope
     @Provides
     fun provideOpenApiMainService(retrofitBuilder: Retrofit.Builder): MainService {
@@ -26,6 +27,7 @@ class MainModule {
             .create(MainService::class.java)
     }
 
+    @JvmStatic
     @MainScope
     @Provides
     fun provideAccountRepository(
@@ -36,24 +38,28 @@ class MainModule {
         return AccountRepository(mainService, accountPropertiesDao, sessionManager)
     }
 
+    @JvmStatic
     @MainScope
     @Provides
     fun provideArticlesDao(db: AppDatabase): ArticlesDao {
         return db.getArticlesDao()
     }
 
+    @JvmStatic
     @MainScope
     @Provides
     fun provideMarkwon(application: Application): Markwon {
         return Markwon.create(application.applicationContext)
     }
 
+    @JvmStatic
     @MainScope
     @Provides
     fun provideMarkwonEditor(markwon: Markwon): MarkwonEditor {
         return MarkwonEditor.create(markwon)
     }
 
+    @JvmStatic
     @MainScope
     @Provides
     fun provideArticleRepository(
@@ -64,6 +70,7 @@ class MainModule {
         return ArticleRepository(mainService, articlesDao, sessionManager)
     }
 
+    @JvmStatic
     @MainScope
     @Provides
     fun provideCreateArticleRepository(

@@ -6,10 +6,13 @@ import android.util.Log
 import android.view.MenuItem
 import android.view.View
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentFactory
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
 import com.bumptech.glide.RequestManager
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import xyz.harmonyapp.olympusblog.BaseApplication
 import xyz.harmonyapp.olympusblog.R
 import xyz.harmonyapp.olympusblog.databinding.ActivityMainBinding
 import xyz.harmonyapp.olympusblog.models.AUTH_TOKEN_BUNDLE_KEY
@@ -25,22 +28,30 @@ import xyz.harmonyapp.olympusblog.ui.main.article.ViewArticleFragment
 import xyz.harmonyapp.olympusblog.ui.main.create.BaseCreateArticleFragment
 import xyz.harmonyapp.olympusblog.utils.BOTTOM_NAV_BACKSTACK_KEY
 import xyz.harmonyapp.olympusblog.utils.BottomNavController
+import xyz.harmonyapp.olympusblog.utils.BottomNavController.*
 import xyz.harmonyapp.olympusblog.utils.setUpNavigation
-import xyz.harmonyapp.olympusblog.viewmodels.ViewModelProviderFactory
 import javax.inject.Inject
+import javax.inject.Named
 
 class MainActivity : BaseActivity(),
-    BottomNavController.NavGraphProvider,
-    BottomNavController.OnNavigationGraphChanged,
-    BottomNavController.OnNavigationReselectedListener,
-    MainDependencyProvider {
+    OnNavigationGraphChanged,
+    OnNavigationReselectedListener {
 
     private lateinit var binding: ActivityMainBinding
 
     private lateinit var bottomNavigationView: BottomNavigationView
 
     @Inject
-    lateinit var providerFactory: ViewModelProviderFactory
+    @Named("AccountFragmentFactory")
+    lateinit var accountFragmentFactory: FragmentFactory
+
+    @Inject
+    @Named("ArticleFragmentFactory")
+    lateinit var articleFragmentFactory: FragmentFactory
+
+    @Inject
+    @Named("CreateArticleFragmentFactory")
+    lateinit var createArticleFragmentFactory: FragmentFactory
 
     @Inject
     lateinit var requestManager: RequestManager
@@ -48,14 +59,14 @@ class MainActivity : BaseActivity(),
     private val bottomNavController by lazy(LazyThreadSafetyMode.NONE) {
         BottomNavController(
             this,
-            R.id.main_nav_host_fragment,
-            R.id.nav_article,
+            R.id.main_fragments_container,
+            R.id.menu_nav_article,
             this,
-            this
         )
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        inject()
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         val view = binding.root
@@ -76,7 +87,7 @@ class MainActivity : BaseActivity(),
             bottomNavController.onNavigationItemSelected()
         } else {
             (savedInstanceState[BOTTOM_NAV_BACKSTACK_KEY] as IntArray?)?.let { items ->
-                val backstack = BottomNavController.BackStack()
+                val backstack = BackStack()
                 backstack.addAll(items.toTypedArray())
                 bottomNavController.setupBottomNavigationBackStack(backstack)
             }
@@ -93,7 +104,10 @@ class MainActivity : BaseActivity(),
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putParcelable(AUTH_TOKEN_BUNDLE_KEY, sessionManager.cachedToken.value)
-        outState.putIntArray(BOTTOM_NAV_BACKSTACK_KEY, bottomNavController.navigationBackStack.toIntArray())
+        outState.putIntArray(
+            BOTTOM_NAV_BACKSTACK_KEY,
+            bottomNavController.navigationBackStack.toIntArray()
+        )
     }
 
     private fun subscribeObservers() {
@@ -110,6 +124,7 @@ class MainActivity : BaseActivity(),
         val intent = Intent(this, AuthActivity::class.java)
         startActivity(intent)
         finish()
+        (application as BaseApplication).releaseMainComponent()
     }
 
     private fun setupActionBar() {
@@ -121,21 +136,6 @@ class MainActivity : BaseActivity(),
             binding.progressBar.visibility = View.VISIBLE
         } else {
             binding.progressBar.visibility = View.GONE
-        }
-    }
-
-    override fun getNavGraphId(itemId: Int) = when (itemId) {
-        R.id.nav_article -> {
-            R.navigation.nav_article
-        }
-        R.id.nav_create_article -> {
-            R.navigation.nav_create
-        }
-        R.id.nav_account -> {
-            R.navigation.nav_account
-        }
-        else -> {
-            R.navigation.nav_article
         }
     }
 
@@ -197,6 +197,11 @@ class MainActivity : BaseActivity(),
 
     override fun onBackPressed() = bottomNavController.onBackPressed()
 
+    override fun inject() {
+        (application as BaseApplication).mainComponent()
+            .inject(this)
+    }
+
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
 
         when (item?.itemId) {
@@ -205,7 +210,4 @@ class MainActivity : BaseActivity(),
         return super.onOptionsItemSelected(item)
     }
 
-    override fun getVMProviderFactory(): ViewModelProviderFactory = providerFactory
-
-    override fun getGlideRequestManager(): RequestManager = requestManager
 }

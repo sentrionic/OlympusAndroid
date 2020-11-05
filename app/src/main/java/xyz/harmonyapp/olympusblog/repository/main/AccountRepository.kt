@@ -10,6 +10,7 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import xyz.harmonyapp.olympusblog.api.main.MainService
 import xyz.harmonyapp.olympusblog.api.main.dto.ChangePasswordDTO
+import xyz.harmonyapp.olympusblog.di.main.MainScope
 import xyz.harmonyapp.olympusblog.models.AccountProperties
 import xyz.harmonyapp.olympusblog.models.AuthToken
 import xyz.harmonyapp.olympusblog.persistence.AccountPropertiesDao
@@ -26,6 +27,7 @@ import xyz.harmonyapp.olympusblog.utils.GenericApiResponse
 import xyz.harmonyapp.olympusblog.utils.SuccessHandling.Companion.RESPONSE_PASSWORD_UPDATE_SUCCESS
 import javax.inject.Inject
 
+@MainScope
 class AccountRepository
 @Inject
 constructor(

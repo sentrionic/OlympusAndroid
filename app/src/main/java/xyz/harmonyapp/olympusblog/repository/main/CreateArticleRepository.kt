@@ -8,6 +8,7 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import xyz.harmonyapp.olympusblog.api.main.MainService
 import xyz.harmonyapp.olympusblog.api.main.responses.ArticleResponse
+import xyz.harmonyapp.olympusblog.di.main.MainScope
 import xyz.harmonyapp.olympusblog.models.Article
 import xyz.harmonyapp.olympusblog.persistence.ArticlesDao
 import xyz.harmonyapp.olympusblog.repository.JobManager
@@ -23,6 +24,7 @@ import xyz.harmonyapp.olympusblog.utils.GenericApiResponse
 import xyz.harmonyapp.olympusblog.utils.SuccessHandling.Companion.SUCCESS_ARTICLE_CREATED
 import javax.inject.Inject
 
+@MainScope
 class CreateArticleRepository
 @Inject
 constructor(

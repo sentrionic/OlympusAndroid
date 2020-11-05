@@ -7,11 +7,13 @@ import retrofit2.http.*
 import xyz.harmonyapp.olympusblog.api.main.dto.ChangePasswordDTO
 import xyz.harmonyapp.olympusblog.api.main.responses.ArticleListSearchResponse
 import xyz.harmonyapp.olympusblog.api.main.responses.ArticleResponse
+import xyz.harmonyapp.olympusblog.di.main.MainScope
 import xyz.harmonyapp.olympusblog.models.AccountProperties
 import xyz.harmonyapp.olympusblog.models.Article
 import xyz.harmonyapp.olympusblog.utils.Constants.Companion.PAGINATION_PAGE_SIZE
 import xyz.harmonyapp.olympusblog.utils.GenericApiResponse
 
+@MainScope
 interface MainService {
     @GET("user")
     fun getAccountProperties(): LiveData<GenericApiResponse<AccountProperties>>

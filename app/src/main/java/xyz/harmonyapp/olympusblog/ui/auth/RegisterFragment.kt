@@ -4,22 +4,43 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import xyz.harmonyapp.olympusblog.databinding.FragmentRegisterBinding
-import xyz.harmonyapp.olympusblog.ui.auth.state.AuthStateEvent
-import xyz.harmonyapp.olympusblog.ui.auth.state.AuthStateEvent.*
+import xyz.harmonyapp.olympusblog.di.auth.AuthScope
+import xyz.harmonyapp.olympusblog.ui.auth.state.AuthStateEvent.RegisterAttemptEvent
 import xyz.harmonyapp.olympusblog.ui.auth.state.RegistrationFields
+import javax.inject.Inject
 
-class RegisterFragment : BaseAuthFragment() {
+@AuthScope
+class RegisterFragment
+@Inject
+constructor(
+    private val viewModelFactory: ViewModelProvider.Factory
+) : Fragment() {
 
     private var _binding: FragmentRegisterBinding? = null
     private val binding get() = _binding!!
+
+    private val TAG: String = "AppDebug"
+
+    val viewModel: AuthViewModel by viewModels {
+        viewModelFactory
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        viewModel.cancelActiveJobs()
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
+        super.onCreate(savedInstanceState)
+        viewModel.cancelActiveJobs()
         _binding = FragmentRegisterBinding.inflate(inflater, container, false)
         return binding.root
     }

@@ -8,28 +8,70 @@ import android.provider.MediaStore
 import android.util.Log
 import android.view.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
+import com.bumptech.glide.RequestManager
 import com.theartofdev.edmodo.cropper.CropImage
 import com.theartofdev.edmodo.cropper.CropImageView
+import io.noties.markwon.editor.MarkwonEditor
 import io.noties.markwon.editor.MarkwonEditorTextWatcher
 import okhttp3.MediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import xyz.harmonyapp.olympusblog.R
 import xyz.harmonyapp.olympusblog.databinding.FragmentCreateArticleBinding
+import xyz.harmonyapp.olympusblog.di.main.MainScope
 import xyz.harmonyapp.olympusblog.ui.*
+import xyz.harmonyapp.olympusblog.ui.main.create.state.CREATE_ARTICLE_VIEW_STATE_BUNDLE_KEY
 import xyz.harmonyapp.olympusblog.ui.main.create.state.CreateArticleStateEvent.CreateNewArticleEvent
+import xyz.harmonyapp.olympusblog.ui.main.create.state.CreateArticleViewState
 import xyz.harmonyapp.olympusblog.utils.Constants.Companion.GALLERY_REQUEST_CODE
 import xyz.harmonyapp.olympusblog.utils.ErrorHandling.Companion.ERROR_MUST_SELECT_IMAGE
 import xyz.harmonyapp.olympusblog.utils.ErrorHandling.Companion.ERROR_SOMETHING_WRONG_WITH_IMAGE
 import xyz.harmonyapp.olympusblog.utils.SuccessHandling.Companion.SUCCESS_ARTICLE_CREATED
 import java.io.File
 import java.util.concurrent.Executors
+import javax.inject.Inject
 
-class CreateArticleFragment : BaseCreateArticleFragment() {
+@MainScope
+class CreateArticleFragment
+@Inject
+constructor(
+    private val viewModelFactory: ViewModelProvider.Factory,
+    private val requestManager: RequestManager,
+    private val editor: MarkwonEditor
+) : BaseCreateArticleFragment() {
 
     private var _binding: FragmentCreateArticleBinding? = null
     private val binding get() = _binding!!
+
+    val viewModel: CreateArticleViewModel by viewModels {
+        viewModelFactory
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        cancelActiveJobs()
+        // Restore state after process death
+        savedInstanceState?.let { inState ->
+            (inState[CREATE_ARTICLE_VIEW_STATE_BUNDLE_KEY] as CreateArticleViewState?)?.let { viewState ->
+                viewModel.setViewState(viewState)
+            }
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putParcelable(
+            CREATE_ARTICLE_VIEW_STATE_BUNDLE_KEY,
+            viewModel.viewState.value
+        )
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun cancelActiveJobs() {
+        viewModel.cancelActiveJobs()
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -158,11 +200,11 @@ class CreateArticleFragment : BaseCreateArticleFragment() {
 
         with(binding) {
             if (image != null) {
-                mainDependencyProvider.getGlideRequestManager()
+                requestManager
                     .load(image)
                     .into(articleImage)
             } else {
-                mainDependencyProvider.getGlideRequestManager()
+                requestManager
                     .load(R.drawable.default_image)
                     .into(articleImage)
             }

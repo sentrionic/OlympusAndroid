@@ -12,7 +12,9 @@ import android.widget.RadioGroup
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -20,25 +22,67 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.customview.customView
 import com.afollestad.materialdialogs.customview.getCustomView
+import com.bumptech.glide.RequestManager
 import xyz.harmonyapp.olympusblog.R
 import xyz.harmonyapp.olympusblog.databinding.FragmentArticleBinding
+import xyz.harmonyapp.olympusblog.di.main.MainScope
 import xyz.harmonyapp.olympusblog.models.Article
 import xyz.harmonyapp.olympusblog.persistence.ArticleQueryUtils.Companion.ARTICLES_ASC
 import xyz.harmonyapp.olympusblog.persistence.ArticleQueryUtils.Companion.ARTICLES_DESC
 import xyz.harmonyapp.olympusblog.ui.DataState
+import xyz.harmonyapp.olympusblog.ui.main.article.state.ARTICLE_VIEW_STATE_BUNDLE_KEY
 import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleViewState
 import xyz.harmonyapp.olympusblog.ui.main.article.viewmodel.*
 import xyz.harmonyapp.olympusblog.utils.TopSpacingItemDecoration
+import javax.inject.Inject
 
-class ArticleFragment : BaseArticleFragment(),
+@MainScope
+class ArticleFragment
+@Inject
+constructor(
+    private val viewModelFactory: ViewModelProvider.Factory,
+    private val requestManager: RequestManager
+) : BaseArticleFragment(),
     ArticleListAdapter.Interaction,
     SwipeRefreshLayout.OnRefreshListener {
 
     private var _binding: FragmentArticleBinding? = null
     private val binding get() = _binding!!
 
+    val viewModel: ArticleViewModel by viewModels {
+        viewModelFactory
+    }
+
     private lateinit var recyclerAdapter: ArticleListAdapter
     private lateinit var searchView: SearchView
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        cancelActiveJobs()
+        // Restore state after process death
+        savedInstanceState?.let { inState ->
+            (inState[ARTICLE_VIEW_STATE_BUNDLE_KEY] as ArticleViewState?)?.let { viewState ->
+                viewModel.setViewState(viewState)
+            }
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        val viewState = viewModel.viewState.value
+
+        //clear the list. Don't want to save a large list to bundle.
+        viewState?.articleFields?.articleList = ArrayList()
+
+        outState.putParcelable(
+            ARTICLE_VIEW_STATE_BUNDLE_KEY,
+            viewState
+        )
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun cancelActiveJobs() {
+        viewModel.cancelActiveJobs()
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -84,7 +128,7 @@ class ArticleFragment : BaseArticleFragment(),
             if (viewState != null) {
                 recyclerAdapter.apply {
                     preloadGlideImages(
-                        requestManager = mainDependencyProvider.getGlideRequestManager(),
+                        requestManager = requestManager,
                         list = viewState.articleFields.articleList
                     )
 
@@ -106,7 +150,7 @@ class ArticleFragment : BaseArticleFragment(),
             addItemDecoration(topSpacingDecorator)
 
             recyclerAdapter = ArticleListAdapter(
-                mainDependencyProvider.getGlideRequestManager(),
+                requestManager,
                 this@ArticleFragment
             )
             addOnScrollListener(object : RecyclerView.OnScrollListener() {
@@ -262,7 +306,7 @@ class ArticleFragment : BaseArticleFragment(),
 
     override fun onResume() {
         super.onResume()
-        viewModel.refreshFromCache()
+        viewModel.loadFirstPage()
     }
 
     override fun onPause() {
@@ -279,5 +323,6 @@ class ArticleFragment : BaseArticleFragment(),
     override fun onDestroyView() {
         super.onDestroyView()
         binding.articleRecyclerview.adapter = null
+        _binding = null
     }
 }

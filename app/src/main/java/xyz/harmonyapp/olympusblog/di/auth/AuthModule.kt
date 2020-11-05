@@ -11,8 +11,9 @@ import xyz.harmonyapp.olympusblog.repository.auth.AuthRepository
 import xyz.harmonyapp.olympusblog.session.SessionManager
 
 @Module
-class AuthModule {
+object AuthModule {
 
+    @JvmStatic
     @AuthScope
     @Provides
     fun provideAuthService(retrofitBuilder: Retrofit.Builder): AuthService {
@@ -21,6 +22,7 @@ class AuthModule {
             .create(AuthService::class.java)
     }
 
+    @JvmStatic
     @AuthScope
     @Provides
     fun provideAuthRepository(

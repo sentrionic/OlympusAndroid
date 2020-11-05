@@ -5,22 +5,47 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import xyz.harmonyapp.olympusblog.databinding.FragmentChangePasswordBinding
+import xyz.harmonyapp.olympusblog.di.main.MainScope
+import xyz.harmonyapp.olympusblog.ui.main.account.state.ACCOUNT_VIEW_STATE_BUNDLE_KEY
 import xyz.harmonyapp.olympusblog.ui.main.account.state.AccountStateEvent
+import xyz.harmonyapp.olympusblog.ui.main.account.state.AccountViewState
 import xyz.harmonyapp.olympusblog.utils.SuccessHandling.Companion.RESPONSE_PASSWORD_UPDATE_SUCCESS
+import javax.inject.Inject
 
-class ChangePasswordFragment : BaseAccountFragment() {
+@MainScope
+class ChangePasswordFragment
+@Inject
+constructor(
+    private val viewModelFactory: ViewModelProvider.Factory
+) : BaseAccountFragment() {
 
     private var _binding: FragmentChangePasswordBinding? = null
     private val binding get() = _binding!!
+
+    val viewModel: AccountViewModel by viewModels {
+        viewModelFactory
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        cancelActiveJobs()
+        // Restore state after process death
+        savedInstanceState?.let { inState ->
+            (inState[ACCOUNT_VIEW_STATE_BUNDLE_KEY] as AccountViewState?)?.let { viewState ->
+                viewModel.setViewState(viewState)
+            }
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         _binding = FragmentChangePasswordBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -59,6 +84,10 @@ class ChangePasswordFragment : BaseAccountFragment() {
                 }
             }
         })
+    }
+
+    override fun cancelActiveJobs() {
+        viewModel.cancelActiveJobs()
     }
 
     override fun onDestroyView() {

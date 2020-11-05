@@ -4,44 +4,62 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import androidx.activity.viewModels
+import androidx.fragment.app.FragmentFactory
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.NavController
-import androidx.navigation.NavDestination
-import androidx.navigation.findNavController
+import xyz.harmonyapp.olympusblog.BaseApplication
 import xyz.harmonyapp.olympusblog.R
 import xyz.harmonyapp.olympusblog.databinding.ActivityAuthBinding
+import xyz.harmonyapp.olympusblog.fragments.auth.AuthNavHostFragment
 import xyz.harmonyapp.olympusblog.ui.BaseActivity
 import xyz.harmonyapp.olympusblog.ui.auth.state.AuthStateEvent.CheckPreviousAuthEvent
 import xyz.harmonyapp.olympusblog.ui.main.MainActivity
 import xyz.harmonyapp.olympusblog.utils.SuccessHandling.Companion.RESPONSE_CHECK_PREVIOUS_AUTH_USER_DONE
-import xyz.harmonyapp.olympusblog.viewmodels.ViewModelProviderFactory
 import javax.inject.Inject
 
-class AuthActivity : BaseActivity(), NavController.OnDestinationChangedListener {
+class AuthActivity : BaseActivity() {
 
     private lateinit var binding: ActivityAuthBinding
 
     @Inject
-    lateinit var providerFactory: ViewModelProviderFactory
+    lateinit var fragmentFactory: FragmentFactory
 
-    lateinit var viewModel: AuthViewModel
+    @Inject
+    lateinit var providerFactory: ViewModelProvider.Factory
+
+    val viewModel: AuthViewModel by viewModels {
+        providerFactory
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        inject()
         super.onCreate(savedInstanceState)
         binding = ActivityAuthBinding.inflate(layoutInflater)
         val view = binding.root
         setContentView(view)
 
-        viewModel = ViewModelProvider(this, providerFactory).get(AuthViewModel::class.java)
-        findNavController(R.id.auth_nav_host_fragment).addOnDestinationChangedListener(this)
-
         subscribeObservers()
+        onRestoreInstanceState()
     }
 
     override fun onResume() {
         super.onResume()
         checkPreviousAuthUser()
+    }
+
+    private fun createNavHost() {
+        val navHost = AuthNavHostFragment.create(
+            R.navigation.auth_nav_graph
+        )
+        supportFragmentManager.beginTransaction()
+            .replace(
+                R.id.auth_fragments_container,
+                navHost,
+                getString(R.string.AuthNavHost)
+            )
+            .setPrimaryNavigationFragment(navHost)
+            .commit()
     }
 
     private fun subscribeObservers() {
@@ -92,6 +110,7 @@ class AuthActivity : BaseActivity(), NavController.OnDestinationChangedListener 
         val intent = Intent(this, MainActivity::class.java)
         startActivity(intent)
         finish()
+        (application as BaseApplication).releaseAuthComponent()
     }
 
     private fun checkPreviousAuthUser() {
@@ -102,13 +121,11 @@ class AuthActivity : BaseActivity(), NavController.OnDestinationChangedListener 
         binding.fragmentContainer.visibility = View.VISIBLE
     }
 
-
-    override fun onDestinationChanged(
-        controller: NavController,
-        destination: NavDestination,
-        arguments: Bundle?
-    ) {
-        viewModel.cancelActiveJobs()
+    private fun onRestoreInstanceState() {
+        val host = supportFragmentManager.findFragmentById(R.id.auth_fragments_container)
+        host?.let {
+            // do nothing
+        } ?: createNavHost()
     }
 
     override fun displayProgressBar(bool: Boolean) {
@@ -117,6 +134,11 @@ class AuthActivity : BaseActivity(), NavController.OnDestinationChangedListener 
         } else {
             binding.progressBar.visibility = View.GONE
         }
+    }
+
+    override fun inject() {
+        (application as BaseApplication).authComponent()
+            .inject(this)
     }
 
     override fun expandAppBar() {

@@ -8,26 +8,53 @@ import android.provider.MediaStore
 import android.util.Log
 import android.view.*
 import androidx.core.net.toUri
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
+import com.bumptech.glide.RequestManager
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.theartofdev.edmodo.cropper.CropImage
 import com.theartofdev.edmodo.cropper.CropImageView
-import kotlinx.android.synthetic.main.fragment_account.*
 import okhttp3.MediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import xyz.harmonyapp.olympusblog.R
 import xyz.harmonyapp.olympusblog.databinding.FragmentUpdateAccountBinding
+import xyz.harmonyapp.olympusblog.di.main.MainScope
 import xyz.harmonyapp.olympusblog.models.AccountProperties
 import xyz.harmonyapp.olympusblog.ui.*
+import xyz.harmonyapp.olympusblog.ui.main.account.state.ACCOUNT_VIEW_STATE_BUNDLE_KEY
 import xyz.harmonyapp.olympusblog.ui.main.account.state.AccountStateEvent.UpdateAccountPropertiesEvent
+import xyz.harmonyapp.olympusblog.ui.main.account.state.AccountViewState
 import xyz.harmonyapp.olympusblog.utils.Constants.Companion.GALLERY_REQUEST_CODE
 import java.io.File
+import javax.inject.Inject
 
-class UpdateAccountFragment : BaseAccountFragment() {
+@MainScope
+class UpdateAccountFragment
+@Inject
+constructor(
+    private val viewModelFactory: ViewModelProvider.Factory,
+    private val requestManager: RequestManager
+) : BaseAccountFragment() {
 
     private var _binding: FragmentUpdateAccountBinding? = null
     private val binding get() = _binding!!
+
+    val viewModel: AccountViewModel by viewModels {
+        viewModelFactory
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        cancelActiveJobs()
+        // Restore state after process death
+        savedInstanceState?.let { inState ->
+            (inState[ACCOUNT_VIEW_STATE_BUNDLE_KEY] as AccountViewState?)?.let { viewState ->
+                viewModel.setViewState(viewState)
+            }
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -62,7 +89,7 @@ class UpdateAccountFragment : BaseAccountFragment() {
             if (viewState != null) {
                 viewState.accountProperties?.let {
                     Log.d(TAG, "UpdateAccountFragment, ViewState: ${it}")
-                    setAccountDataFields(it, viewState.updatedImageUri?: it.image.toUri())
+                    setAccountDataFields(it, viewState.updatedImageUri ?: it.image.toUri())
                 }
             }
         })
@@ -83,7 +110,7 @@ class UpdateAccountFragment : BaseAccountFragment() {
                 inputBio.setText(accountProperties.bio)
             }
 
-            mainDependencyProvider.getGlideRequestManager()
+            requestManager
                 .load(uri)
                 .diskCacheStrategy(DiskCacheStrategy.NONE)
                 .into(profilePhoto)
@@ -206,6 +233,10 @@ class UpdateAccountFragment : BaseAccountFragment() {
             }
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    override fun cancelActiveJobs() {
+        viewModel.cancelActiveJobs()
     }
 
     override fun onDestroyView() {

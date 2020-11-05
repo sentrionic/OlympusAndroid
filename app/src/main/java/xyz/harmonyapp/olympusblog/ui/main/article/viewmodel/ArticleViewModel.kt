@@ -4,6 +4,7 @@ import android.content.SharedPreferences
 import androidx.lifecycle.LiveData
 import okhttp3.MediaType
 import okhttp3.RequestBody
+import xyz.harmonyapp.olympusblog.di.main.MainScope
 import xyz.harmonyapp.olympusblog.persistence.ArticleQueryUtils
 import xyz.harmonyapp.olympusblog.repository.main.ArticleRepository
 import xyz.harmonyapp.olympusblog.session.SessionManager
@@ -17,6 +18,7 @@ import xyz.harmonyapp.olympusblog.utils.AbsentLiveData
 import xyz.harmonyapp.olympusblog.utils.PreferenceKeys.Companion.ARTICLE_ORDER
 import javax.inject.Inject
 
+@MainScope
 class ArticleViewModel
 @Inject
 constructor(

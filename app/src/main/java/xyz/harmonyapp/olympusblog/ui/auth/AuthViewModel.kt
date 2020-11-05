@@ -1,6 +1,7 @@
 package xyz.harmonyapp.olympusblog.ui.auth
 
 import androidx.lifecycle.LiveData
+import xyz.harmonyapp.olympusblog.di.auth.AuthScope
 import xyz.harmonyapp.olympusblog.models.AuthToken
 import xyz.harmonyapp.olympusblog.repository.auth.AuthRepository
 import xyz.harmonyapp.olympusblog.ui.BaseViewModel
@@ -12,6 +13,7 @@ import xyz.harmonyapp.olympusblog.ui.auth.state.LoginFields
 import xyz.harmonyapp.olympusblog.ui.auth.state.RegistrationFields
 import javax.inject.Inject
 
+@AuthScope
 class AuthViewModel
 @Inject
 constructor(

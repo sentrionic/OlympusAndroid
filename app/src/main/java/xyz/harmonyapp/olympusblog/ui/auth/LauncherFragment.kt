@@ -5,25 +5,46 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import xyz.harmonyapp.olympusblog.R
 import xyz.harmonyapp.olympusblog.databinding.FragmentLauncherBinding
-import xyz.harmonyapp.olympusblog.models.AuthToken
+import xyz.harmonyapp.olympusblog.di.auth.AuthScope
 import xyz.harmonyapp.olympusblog.ui.auth.state.AuthStateEvent.LoginAttemptEvent
 import xyz.harmonyapp.olympusblog.ui.auth.state.LoginFields
+import javax.inject.Inject
 
 
-class LauncherFragment : BaseAuthFragment() {
+@AuthScope
+class LauncherFragment
+@Inject
+constructor(
+    private val viewModelFactory: ViewModelProvider.Factory
+) : Fragment() {
+
+    private val TAG: String = "AppDebug"
 
     private var _binding: FragmentLauncherBinding? = null
     private val binding get() = _binding!!
+
+    val viewModel: AuthViewModel by viewModels {
+        viewModelFactory
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        viewModel.cancelActiveJobs()
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
+        super.onCreate(savedInstanceState)
+        viewModel.cancelActiveJobs()
         _binding = FragmentLauncherBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -84,5 +105,6 @@ class LauncherFragment : BaseAuthFragment() {
                 binding.inputPassword.text.toString()
             )
         )
+        _binding = null
     }
 }

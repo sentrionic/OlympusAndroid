@@ -3,25 +3,35 @@ package xyz.harmonyapp.olympusblog.ui
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.os.Bundle
 import android.util.Log
 import android.view.inputmethod.InputMethodManager
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import dagger.android.support.DaggerAppCompatActivity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import xyz.harmonyapp.olympusblog.BaseApplication
 import xyz.harmonyapp.olympusblog.session.SessionManager
 import xyz.harmonyapp.olympusblog.utils.Constants.Companion.PERMISSIONS_REQUEST_READ_STORAGE
 import javax.inject.Inject
 
-abstract class BaseActivity : DaggerAppCompatActivity(), DataStateChangeListener,
+abstract class BaseActivity : AppCompatActivity(), DataStateChangeListener,
     UICommunicationListener {
 
     val TAG: String = "AppDebug"
 
     @Inject
     lateinit var sessionManager: SessionManager
+
+    abstract fun inject()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        (application as BaseApplication).appComponent
+            .inject(this)
+        super.onCreate(savedInstanceState)
+    }
 
     override fun onDataStateChange(dataState: DataState<*>?) {
         dataState?.let {

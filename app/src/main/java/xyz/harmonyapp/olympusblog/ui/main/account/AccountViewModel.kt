@@ -3,6 +3,7 @@ package xyz.harmonyapp.olympusblog.ui.main.account
 import android.net.Uri
 import androidx.lifecycle.LiveData
 import okhttp3.MultipartBody
+import xyz.harmonyapp.olympusblog.di.main.MainScope
 import xyz.harmonyapp.olympusblog.models.AccountProperties
 import xyz.harmonyapp.olympusblog.repository.main.AccountRepository
 import xyz.harmonyapp.olympusblog.session.SessionManager
@@ -15,6 +16,7 @@ import xyz.harmonyapp.olympusblog.ui.main.account.state.AccountViewState
 import xyz.harmonyapp.olympusblog.utils.AbsentLiveData
 import javax.inject.Inject
 
+@MainScope
 class AccountViewModel
 @Inject
 constructor(

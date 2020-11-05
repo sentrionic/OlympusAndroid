@@ -1,22 +1,50 @@
 package xyz.harmonyapp.olympusblog
 
 import android.app.Application
-import dagger.android.AndroidInjector
-import dagger.android.DispatchingAndroidInjector
-import dagger.android.HasAndroidInjector
-import xyz.harmonyapp.olympusblog.di.AppInjector
-import javax.inject.Inject
+import xyz.harmonyapp.olympusblog.di.AppComponent
+import xyz.harmonyapp.olympusblog.di.DaggerAppComponent
+import xyz.harmonyapp.olympusblog.di.auth.AuthComponent
+import xyz.harmonyapp.olympusblog.di.main.MainComponent
 
-class BaseApplication : Application(), HasAndroidInjector {
+class BaseApplication : Application() {
 
-    @Inject
-    lateinit var dispatchingAndroidInjector: DispatchingAndroidInjector<Any>
+    lateinit var appComponent: AppComponent
+
+    private var authComponent: AuthComponent? = null
+
+    private var mainComponent: MainComponent? = null
 
     override fun onCreate() {
         super.onCreate()
-        AppInjector.init(this)
+        initAppComponent()
     }
 
-    override fun androidInjector(): AndroidInjector<Any> = dispatchingAndroidInjector
+    private fun initAppComponent() {
+        appComponent = DaggerAppComponent.builder()
+            .application(this)
+            .build()
+    }
+
+    fun releaseAuthComponent() {
+        authComponent = null
+    }
+
+    fun authComponent(): AuthComponent {
+        if (authComponent == null) {
+            authComponent = appComponent.authComponent().create()
+        }
+        return authComponent as AuthComponent
+    }
+
+    fun releaseMainComponent() {
+        mainComponent = null
+    }
+
+    fun mainComponent(): MainComponent {
+        if (mainComponent == null) {
+            mainComponent = appComponent.mainComponent().create()
+        }
+        return mainComponent as MainComponent
+    }
 
 }
