@@ -7,30 +7,37 @@ import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.NavigationUI.setupActionBarWithNavController
+import androidx.navigation.ui.NavigationUI
 import xyz.harmonyapp.olympusblog.R
-import xyz.harmonyapp.olympusblog.ui.DataStateChangeListener
-import xyz.harmonyapp.olympusblog.ui.main.account.state.ACCOUNT_VIEW_STATE_BUNDLE_KEY
-import xyz.harmonyapp.olympusblog.ui.main.account.state.AccountViewState
+import xyz.harmonyapp.olympusblog.ui.UICommunicationListener
 
-abstract class BaseAccountFragment : Fragment() {
+abstract class BaseAccountFragment
+constructor(
+    private val viewModelFactory: ViewModelProvider.Factory
+) : Fragment() {
 
     val TAG: String = "AppDebug"
 
-    lateinit var stateChangeListener: DataStateChangeListener
+    val viewModel: AccountViewModel by viewModels {
+        viewModelFactory
+    }
 
-    abstract fun cancelActiveJobs()
+    lateinit var uiCommunicationListener: UICommunicationListener
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupActionBarWithNavController(R.id.accountFragment, activity as AppCompatActivity)
+        setupChannel()
     }
+
+    private fun setupChannel() = viewModel.setupChannel()
 
     private fun setupActionBarWithNavController(fragmentId: Int, activity: AppCompatActivity) {
         val appBarConfiguration = AppBarConfiguration(setOf(fragmentId))
-        setupActionBarWithNavController(
+        NavigationUI.setupActionBarWithNavController(
             activity,
             findNavController(),
             appBarConfiguration
@@ -40,10 +47,9 @@ abstract class BaseAccountFragment : Fragment() {
     override fun onAttach(context: Context) {
         super.onAttach(context)
         try {
-            stateChangeListener = context as DataStateChangeListener
+            uiCommunicationListener = context as UICommunicationListener
         } catch (e: ClassCastException) {
-            Log.e(TAG, "$context must implement DataStateChangeListener")
+            Log.e(TAG, "$context must implement UICommunicationListener")
         }
     }
-
 }

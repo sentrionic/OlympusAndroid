@@ -2,35 +2,22 @@ package xyz.harmonyapp.olympusblog.ui.main.article.viewmodel
 
 import android.net.Uri
 import xyz.harmonyapp.olympusblog.models.Article
+import xyz.harmonyapp.olympusblog.persistence.ArticleQueryUtils.Companion.ARTICLES_DESC
 
 fun ArticleViewModel.getSearchQuery(): String {
-    getCurrentViewStateOrNew().let {
-        return it.articleFields.searchQuery
-    }
+    return getCurrentViewStateOrNew().articleFields.searchQuery ?: ""
 }
 
 fun ArticleViewModel.getPage(): Int {
-    getCurrentViewStateOrNew().let {
-        return it.articleFields.page
-    }
+    return getCurrentViewStateOrNew().articleFields.page ?: -1
 }
 
 fun ArticleViewModel.getIsQueryExhausted(): Boolean {
-    getCurrentViewStateOrNew().let {
-        return it.articleFields.isQueryExhausted
-    }
-}
-
-fun ArticleViewModel.getIsQueryInProgress(): Boolean {
-    getCurrentViewStateOrNew().let {
-        return it.articleFields.isQueryInProgress
-    }
+    return getCurrentViewStateOrNew().articleFields.isQueryExhausted ?: false
 }
 
 fun ArticleViewModel.getOrder(): String {
-    getCurrentViewStateOrNew().let {
-        return it.articleFields.order
-    }
+    return getCurrentViewStateOrNew().articleFields.order ?: ARTICLES_DESC
 }
 
 fun ArticleViewModel.getSlug(): String {
@@ -43,9 +30,7 @@ fun ArticleViewModel.getSlug(): String {
 }
 
 fun ArticleViewModel.isAuthor(): Boolean {
-    getCurrentViewStateOrNew().let {
-        return it.viewArticleFields.isAuthorOfArticle
-    }
+    return getCurrentViewStateOrNew().viewArticleFields.isAuthorOfArticle ?: false
 }
 
 fun ArticleViewModel.getArticle(): Article {

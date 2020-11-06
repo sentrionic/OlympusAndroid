@@ -8,10 +8,8 @@ import android.provider.MediaStore
 import android.util.Log
 import android.view.*
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.RequestManager
 import com.theartofdev.edmodo.cropper.CropImage
 import com.theartofdev.edmodo.cropper.CropImageView
@@ -23,15 +21,19 @@ import okhttp3.RequestBody
 import xyz.harmonyapp.olympusblog.R
 import xyz.harmonyapp.olympusblog.databinding.FragmentUpdateArticleBinding
 import xyz.harmonyapp.olympusblog.di.main.MainScope
-import xyz.harmonyapp.olympusblog.ui.*
 import xyz.harmonyapp.olympusblog.ui.main.article.state.ARTICLE_VIEW_STATE_BUNDLE_KEY
 import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleStateEvent
 import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleViewState
-import xyz.harmonyapp.olympusblog.ui.main.article.viewmodel.ArticleViewModel
 import xyz.harmonyapp.olympusblog.ui.main.article.viewmodel.getUpdatedArticleUri
-import xyz.harmonyapp.olympusblog.ui.main.article.viewmodel.onArticleUpdateSuccess
 import xyz.harmonyapp.olympusblog.ui.main.article.viewmodel.setUpdatedArticleFields
+import xyz.harmonyapp.olympusblog.ui.main.article.viewmodel.updateListItem
 import xyz.harmonyapp.olympusblog.utils.Constants.Companion.GALLERY_REQUEST_CODE
+import xyz.harmonyapp.olympusblog.utils.ErrorHandling.Companion.SOMETHING_WRONG_WITH_IMAGE
+import xyz.harmonyapp.olympusblog.utils.MessageType
+import xyz.harmonyapp.olympusblog.utils.Response
+import xyz.harmonyapp.olympusblog.utils.StateMessageCallback
+import xyz.harmonyapp.olympusblog.utils.SuccessHandling.Companion.SUCCESS_ARTICLE_UPDATED
+import xyz.harmonyapp.olympusblog.utils.UIComponentType
 import java.io.File
 import java.util.concurrent.Executors
 import javax.inject.Inject
@@ -43,18 +45,13 @@ constructor(
     private val viewModelFactory: ViewModelProvider.Factory,
     private val requestManager: RequestManager,
     private val editor: MarkwonEditor
-) : BaseArticleFragment() {
+) : BaseArticleFragment(viewModelFactory) {
 
     private var _binding: FragmentUpdateArticleBinding? = null
     private val binding get() = _binding!!
 
-    val viewModel: ArticleViewModel by viewModels {
-        viewModelFactory
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        cancelActiveJobs()
         // Restore state after process death
         savedInstanceState?.let { inState ->
             (inState[ARTICLE_VIEW_STATE_BUNDLE_KEY] as ArticleViewState?)?.let { viewState ->
@@ -74,10 +71,6 @@ constructor(
             viewState
         )
         super.onSaveInstanceState(outState)
-    }
-
-    override fun cancelActiveJobs() {
-        viewModel.cancelActiveJobs()
     }
 
     override fun onCreateView(
@@ -103,29 +96,13 @@ constructor(
         )
 
         binding.imageContainer.setOnClickListener {
-            if (stateChangeListener.isStoragePermissionGranted()) {
+            if (uiCommunicationListener.isStoragePermissionGranted()) {
                 pickFromGallery()
             }
         }
     }
 
     fun subscribeObservers() {
-        viewModel.dataState.observe(viewLifecycleOwner, Observer { dataState ->
-            if (dataState != null) {
-                stateChangeListener.onDataStateChange(dataState)
-                dataState.data?.let { data ->
-                    data.data?.getContentIfNotHandled()?.let { viewState ->
-
-                        // if this is not null, the article was updated
-                        viewState.viewArticleFields.article?.let { article ->
-                            viewModel.onArticleUpdateSuccess(article).let {
-                                findNavController().popBackStack()
-                            }
-                        }
-                    }
-                }
-            }
-        })
 
         viewModel.viewState.observe(viewLifecycleOwner, Observer { viewState ->
             viewState.updatedArticleFields.let { updatedArticleFields ->
@@ -137,7 +114,31 @@ constructor(
                 )
             }
         })
+
+        viewModel.numActiveJobs.observe(viewLifecycleOwner, Observer { jobCounter ->
+            uiCommunicationListener.displayProgressBar(viewModel.areAnyJobsActive())
+        })
+
+        viewModel.stateMessage.observe(viewLifecycleOwner, Observer { stateMessage ->
+
+            stateMessage?.let {
+
+                if (stateMessage.response.message.equals(SUCCESS_ARTICLE_UPDATED)) {
+                    viewModel.updateListItem()
+                }
+
+                uiCommunicationListener.onResponseReceived(
+                    response = it.response,
+                    stateMessageCallback = object : StateMessageCallback {
+                        override fun removeMessageFromStack() {
+                            viewModel.clearStateMessage()
+                        }
+                    }
+                )
+            }
+        })
     }
+
 
     private fun setArticleProperties(
         title: String?,
@@ -188,7 +189,7 @@ constructor(
                     multipartBody
                 )
             )
-            stateChangeListener.hideSoftKeyboard()
+            uiCommunicationListener.hideSoftKeyboard()
         }
     }
 
@@ -213,19 +214,17 @@ constructor(
     }
 
     private fun showImageSelectionError() {
-        stateChangeListener.onDataStateChange(
-            DataState(
-                Event(
-                    StateError(
-                        Response(
-                            "Something went wrong with the image.",
-                            ResponseType.Dialog()
-                        )
-                    )
-                ),
-                Loading(isLoading = false),
-                Data(Event.dataEvent(null), null)
-            )
+        uiCommunicationListener.onResponseReceived(
+            response = Response(
+                message = SOMETHING_WRONG_WITH_IMAGE,
+                uiComponentType = UIComponentType.Dialog(),
+                messageType = MessageType.Error()
+            ),
+            stateMessageCallback = object : StateMessageCallback {
+                override fun removeMessageFromStack() {
+                    viewModel.clearStateMessage()
+                }
+            }
         )
     }
 

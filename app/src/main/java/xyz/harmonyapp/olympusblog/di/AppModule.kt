@@ -23,7 +23,6 @@ import xyz.harmonyapp.olympusblog.persistence.AppDatabase
 import xyz.harmonyapp.olympusblog.persistence.AppDatabase.Companion.DATABASE_NAME
 import xyz.harmonyapp.olympusblog.persistence.AuthTokenDao
 import xyz.harmonyapp.olympusblog.utils.Constants
-import xyz.harmonyapp.olympusblog.utils.LiveDataCallAdapterFactory
 import xyz.harmonyapp.olympusblog.utils.PreferenceKeys
 import javax.inject.Singleton
 
@@ -51,7 +50,7 @@ object AppModule {
     @Singleton
     @Provides
     fun provideMoshiBuilder(): Moshi {
-        return Moshi.Builder().build();
+        return Moshi.Builder().build()
     }
 
     @JvmStatic
@@ -77,7 +76,6 @@ object AppModule {
     fun provideRetrofitBuilder(moshiBuilder: Moshi, client: OkHttpClient): Retrofit.Builder {
         return Retrofit.Builder()
             .baseUrl(Constants.BASE_URL)
-            .addCallAdapterFactory(LiveDataCallAdapterFactory())
             .addConverterFactory(MoshiConverterFactory.create(moshiBuilder))
             .client(client)
     }

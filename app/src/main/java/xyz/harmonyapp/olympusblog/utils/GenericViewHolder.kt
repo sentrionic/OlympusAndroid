@@ -6,7 +6,4 @@ import xyz.harmonyapp.olympusblog.databinding.LayoutNoMoreResultsBinding
 class GenericViewHolder
 constructor(
     binding: LayoutNoMoreResultsBinding
-) : RecyclerView.ViewHolder(binding.root) {
-
-
-}
+) : RecyclerView.ViewHolder(binding.root)

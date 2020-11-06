@@ -14,7 +14,6 @@ import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
-import okhttp3.OkHttpClient
 import xyz.harmonyapp.olympusblog.models.AuthToken
 import xyz.harmonyapp.olympusblog.persistence.AuthTokenDao
 import javax.inject.Inject
@@ -50,14 +49,14 @@ constructor(
                 } ?: throw CancellationException("Token Error. Logging out user.")
                 cookieJar.clearSession()
             } catch (e: CancellationException) {
-                Log.e(TAG, "logout: ${e.message}")
+                Log.e(TAG, "CancellationException: ${e.message}")
                 errorMessage = e.message
             } catch (e: Exception) {
-                Log.e(TAG, "logout: ${e.message}")
+                Log.e(TAG, "Exception: ${e.message}")
                 errorMessage = errorMessage + "\n" + e.message
             } finally {
                 errorMessage?.let {
-                    Log.e(TAG, "logout: ${errorMessage}")
+                    Log.e(TAG, "finally logout: ${errorMessage}")
                 }
                 Log.d(TAG, "logout: finally")
                 setValue(null)

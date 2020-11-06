@@ -6,7 +6,9 @@ class Constants {
 
         const val BASE_URL = "https://api.harmonyapp.xyz/api/"
         const val PASSWORD_RESET_URL: String = "https://harmonyapp.xyz/forgot-password/"
-        const val NETWORK_TIMEOUT = 3000L
+
+        const val NETWORK_TIMEOUT = 6000L
+        const val CACHE_TIMEOUT = 2000L
         const val TESTING_NETWORK_DELAY = 0L // fake network delay for testing
         const val TESTING_CACHE_DELAY = 0L // fake cache delay for testing
 

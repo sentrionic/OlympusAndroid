@@ -3,6 +3,7 @@ package xyz.harmonyapp.olympusblog.di.main
 import androidx.fragment.app.FragmentFactory
 import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.RequestManager
+import com.bumptech.glide.request.RequestOptions
 import dagger.Module
 import dagger.Provides
 import io.noties.markwon.Markwon
@@ -36,11 +37,13 @@ object MainFragmentsModule {
     fun provideArticleFragmentFactory(
         viewModelFactory: ViewModelProvider.Factory,
         requestManager: RequestManager,
+        requestOptions: RequestOptions,
         markwon: Markwon,
         editor: MarkwonEditor
     ): FragmentFactory {
         return ArticleFragmentFactory(
             viewModelFactory,
+            requestOptions,
             requestManager,
             markwon,
             editor

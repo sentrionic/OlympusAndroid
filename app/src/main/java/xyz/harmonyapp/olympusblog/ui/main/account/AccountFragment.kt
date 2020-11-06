@@ -1,10 +1,8 @@
 package xyz.harmonyapp.olympusblog.ui.main.account
 
 import android.os.Bundle
-import android.util.Log
 import android.view.*
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
@@ -17,26 +15,22 @@ import xyz.harmonyapp.olympusblog.models.AccountProperties
 import xyz.harmonyapp.olympusblog.ui.main.account.state.ACCOUNT_VIEW_STATE_BUNDLE_KEY
 import xyz.harmonyapp.olympusblog.ui.main.account.state.AccountStateEvent.GetAccountPropertiesEvent
 import xyz.harmonyapp.olympusblog.ui.main.account.state.AccountViewState
+import xyz.harmonyapp.olympusblog.utils.StateMessageCallback
 import javax.inject.Inject
 
 @MainScope
 class AccountFragment
 @Inject
 constructor(
-    private val viewModelFactory: ViewModelProvider.Factory,
+    viewModelFactory: ViewModelProvider.Factory,
     private val requestManager: RequestManager
-) : BaseAccountFragment() {
+) : BaseAccountFragment(viewModelFactory) {
 
     private var _binding: FragmentAccountBinding? = null
     private val binding get() = _binding!!
 
-    val viewModel: AccountViewModel by viewModels {
-        viewModelFactory
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        cancelActiveJobs()
         // Restore state after process death
         savedInstanceState?.let { inState ->
             (inState[ACCOUNT_VIEW_STATE_BUNDLE_KEY] as AccountViewState?)?.let { viewState ->
@@ -70,34 +64,32 @@ constructor(
     }
 
     private fun subscribeObservers() {
-        viewModel.dataState.observe(viewLifecycleOwner, { dataState ->
-            stateChangeListener.onDataStateChange(dataState)
-            if (dataState != null) {
-                dataState.data?.let { data ->
-                    data.data?.let { event ->
-                        event.getContentIfNotHandled()?.let { viewState ->
-                            viewState.accountProperties?.let { accountProperties ->
-                                Log.d(TAG, "AccountFragment, DataState: ${accountProperties}")
-                                viewModel.setAccountPropertiesData(accountProperties)
-                            }
-                        }
-                    }
-                }
-            }
-        })
 
         viewModel.viewState.observe(viewLifecycleOwner, Observer { viewState ->
             if (viewState != null) {
                 viewState.accountProperties?.let {
-                    Log.d(TAG, "AccountFragment, ViewState: ${it}")
                     setAccountDataFields(it)
                 }
             }
         })
-    }
 
-    override fun cancelActiveJobs() {
-        viewModel.cancelActiveJobs()
+        viewModel.numActiveJobs.observe(viewLifecycleOwner, Observer { jobCounter ->
+            uiCommunicationListener.displayProgressBar(viewModel.areAnyJobsActive())
+        })
+
+        viewModel.stateMessage.observe(viewLifecycleOwner, Observer { stateMessage ->
+
+            stateMessage?.let {
+                uiCommunicationListener.onResponseReceived(
+                    response = it.response,
+                    stateMessageCallback = object : StateMessageCallback {
+                        override fun removeMessageFromStack() {
+                            viewModel.clearStateMessage()
+                        }
+                    }
+                )
+            }
+        })
     }
 
     override fun onResume() {

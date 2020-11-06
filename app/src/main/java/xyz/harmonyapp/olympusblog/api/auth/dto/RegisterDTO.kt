@@ -2,7 +2,7 @@ package xyz.harmonyapp.olympusblog.api.auth.dto
 
 import com.squareup.moshi.Json
 
-data class RegisterDTO (
+data class RegisterDTO(
 
     @Json(name = "email")
     var email: String,

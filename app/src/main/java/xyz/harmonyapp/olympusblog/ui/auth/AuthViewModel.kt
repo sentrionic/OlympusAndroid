@@ -1,16 +1,18 @@
 package xyz.harmonyapp.olympusblog.ui.auth
 
-import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import xyz.harmonyapp.olympusblog.di.auth.AuthScope
 import xyz.harmonyapp.olympusblog.models.AuthToken
 import xyz.harmonyapp.olympusblog.repository.auth.AuthRepository
 import xyz.harmonyapp.olympusblog.ui.BaseViewModel
-import xyz.harmonyapp.olympusblog.ui.DataState
-import xyz.harmonyapp.olympusblog.ui.auth.state.AuthStateEvent
 import xyz.harmonyapp.olympusblog.ui.auth.state.AuthStateEvent.*
 import xyz.harmonyapp.olympusblog.ui.auth.state.AuthViewState
 import xyz.harmonyapp.olympusblog.ui.auth.state.LoginFields
 import xyz.harmonyapp.olympusblog.ui.auth.state.RegistrationFields
+import xyz.harmonyapp.olympusblog.utils.*
+import xyz.harmonyapp.olympusblog.utils.DataState.Companion.error
+import xyz.harmonyapp.olympusblog.utils.ErrorHandling.Companion.INVALID_STATE_EVENT
 import javax.inject.Inject
 
 @AuthScope
@@ -18,39 +20,55 @@ class AuthViewModel
 @Inject
 constructor(
     val authRepository: AuthRepository
-) : BaseViewModel<AuthStateEvent, AuthViewState>() {
+) : BaseViewModel<AuthViewState>() {
 
-    override fun handleStateEvent(stateEvent: AuthStateEvent): LiveData<DataState<AuthViewState>> {
-        when (stateEvent) {
+    override fun handleNewData(data: AuthViewState) {
+        data.authToken?.let { authToken ->
+            setAuthToken(authToken)
+        }
+    }
+
+    override fun setStateEvent(stateEvent: StateEvent) {
+
+        val job: Flow<DataState<AuthViewState>> = when (stateEvent) {
 
             is LoginAttemptEvent -> {
-                return authRepository.attemptLogin(
-                    stateEvent.email,
-                    stateEvent.password
+                authRepository.attemptLogin(
+                    stateEvent = stateEvent,
+                    email = stateEvent.email,
+                    password = stateEvent.password
                 )
             }
 
             is RegisterAttemptEvent -> {
-                return authRepository.attemptRegister(
-                    stateEvent.email,
-                    stateEvent.username,
-                    stateEvent.password
+                authRepository.attemptRegistration(
+                    stateEvent = stateEvent,
+                    email = stateEvent.email,
+                    username = stateEvent.username,
+                    password = stateEvent.password,
                 )
             }
 
             is CheckPreviousAuthEvent -> {
-                return authRepository.checkPreviousAuthUser()
+                authRepository.checkPreviousAuthUser(stateEvent)
             }
 
-            is None -> {
-                return object : LiveData<DataState<AuthViewState>>() {
-                    override fun onActive() {
-                        super.onActive()
-                        value = DataState.data(null, null)
-                    }
+            else -> {
+                flow {
+                    emit(
+                        error<AuthViewState>(
+                            response = Response(
+                                message = INVALID_STATE_EVENT,
+                                uiComponentType = UIComponentType.None(),
+                                messageType = MessageType.Error()
+                            ),
+                            stateEvent = stateEvent
+                        )
+                    )
                 }
             }
         }
+        launchJob(stateEvent, job)
     }
 
     override fun initNewViewState(): AuthViewState {
@@ -82,15 +100,6 @@ constructor(
         }
         update.authToken = authToken
         setViewState(update)
-    }
-
-    fun cancelActiveJobs() {
-        handlePendingData()
-        authRepository.cancelActiveJobs()
-    }
-
-    fun handlePendingData() {
-        setStateEvent(None())
     }
 
     override fun onCleared() {

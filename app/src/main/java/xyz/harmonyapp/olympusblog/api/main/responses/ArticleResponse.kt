@@ -35,7 +35,7 @@ data class ArticleResponse(
     @Json(name = "author")
     var author: AuthorResponse,
 
-) {
+    ) {
     override fun toString(): String {
         return "Article(id=$id, title='$title', description='$description', slug='$slug', body='$body', image='$image', createdAt=$createdAt, favoritesCount=$favoritesCount, favorited=$favorited, author=$author)"
     }

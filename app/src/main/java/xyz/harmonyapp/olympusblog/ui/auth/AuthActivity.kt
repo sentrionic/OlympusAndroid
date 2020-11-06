@@ -15,6 +15,7 @@ import xyz.harmonyapp.olympusblog.fragments.auth.AuthNavHostFragment
 import xyz.harmonyapp.olympusblog.ui.BaseActivity
 import xyz.harmonyapp.olympusblog.ui.auth.state.AuthStateEvent.CheckPreviousAuthEvent
 import xyz.harmonyapp.olympusblog.ui.main.MainActivity
+import xyz.harmonyapp.olympusblog.utils.StateMessageCallback
 import xyz.harmonyapp.olympusblog.utils.SuccessHandling.Companion.RESPONSE_CHECK_PREVIOUS_AUTH_USER_DONE
 import javax.inject.Inject
 
@@ -64,40 +65,38 @@ class AuthActivity : BaseActivity() {
 
     private fun subscribeObservers() {
 
-        viewModel.dataState.observe(this, Observer { dataState ->
-            onDataStateChange(dataState)
-            dataState.data?.let { data ->
-                data.data?.let { event ->
-                    event.getContentIfNotHandled()?.let {
-                        it.authToken?.let {
-                            Log.d(TAG, "AuthActivity, DataState: ${it}")
-                            viewModel.setAuthToken(it)
-                        }
-                    }
-                }
-
-                data.response?.let { event ->
-                    event.peekContent().let { response ->
-                        response.message?.let { message ->
-                            if (message == RESPONSE_CHECK_PREVIOUS_AUTH_USER_DONE) {
-                                onFinishCheckPreviousAuthUser()
-                            }
-                        }
-                    }
-                }
-            }
-        })
-
-        viewModel.viewState.observe(this, {
-            Log.d(TAG, "AuthActivity, subscribeObservers: AuthViewState: ${it}")
-            it.authToken?.let {
+        viewModel.viewState.observe(this, Observer { viewState ->
+            Log.d(TAG, "AuthActivity, subscribeObservers: AuthViewState: ${viewState}")
+            viewState.authToken?.let {
                 sessionManager.login(it)
             }
         })
 
-        sessionManager.cachedToken.observe(this, { dataState ->
-            Log.d(TAG, "AuthActivity, subscribeObservers: AuthDataState: ${dataState}")
-            dataState.let { authToken ->
+        viewModel.numActiveJobs.observe(this, Observer { jobCounter ->
+            displayProgressBar(viewModel.areAnyJobsActive())
+        })
+
+        viewModel.stateMessage.observe(this, Observer { stateMessage ->
+
+            stateMessage?.let {
+
+                if (stateMessage.response.message.equals(RESPONSE_CHECK_PREVIOUS_AUTH_USER_DONE)) {
+                    onFinishCheckPreviousAuthUser()
+                }
+
+                onResponseReceived(
+                    response = it.response,
+                    stateMessageCallback = object : StateMessageCallback {
+                        override fun removeMessageFromStack() {
+                            viewModel.clearStateMessage()
+                        }
+                    }
+                )
+            }
+        })
+
+        sessionManager.cachedToken.observe(this, Observer { token ->
+            token.let { authToken ->
                 if (authToken != null && authToken.account_id != -1 && authToken.token != null) {
                     navMainActivity()
                 }
@@ -119,6 +118,7 @@ class AuthActivity : BaseActivity() {
 
     private fun onFinishCheckPreviousAuthUser() {
         binding.fragmentContainer.visibility = View.VISIBLE
+        binding.splashLogo.visibility = View.INVISIBLE
     }
 
     private fun onRestoreInstanceState() {

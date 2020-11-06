@@ -1,12 +1,14 @@
 package xyz.harmonyapp.olympusblog.persistence
 
-import androidx.lifecycle.LiveData
 import androidx.room.*
 import xyz.harmonyapp.olympusblog.models.Article
 import xyz.harmonyapp.olympusblog.utils.Constants.Companion.PAGINATION_PAGE_SIZE
 
 @Dao
 interface ArticlesDao {
+
+    @Query("DELETE FROM articles")
+    suspend fun nukeTable()
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(article: Article): Long
@@ -21,11 +23,11 @@ interface ArticlesDao {
         LIMIT (:page * :limit)
         """
     )
-    fun getAllArticles(
+    suspend fun getAllArticles(
         query: String,
         page: Int,
         limit: Int = PAGINATION_PAGE_SIZE,
-    ): LiveData<List<Article>>
+    ): List<Article>
 
     @Query(
         """
@@ -37,11 +39,11 @@ interface ArticlesDao {
         LIMIT (:page * :pageSize)
         """
     )
-    fun searchArticlesOrderByDateDESC(
+    suspend fun searchArticlesOrderByDateDESC(
         query: String,
         page: Int,
         pageSize: Int = PAGINATION_PAGE_SIZE
-    ): LiveData<List<Article>>
+    ): List<Article>
 
     @Query(
         """
@@ -53,11 +55,11 @@ interface ArticlesDao {
         LIMIT (:page * :pageSize)
         """
     )
-    fun searchArticlesOrderByDateASC(
+    suspend fun searchArticlesOrderByDateASC(
         query: String,
         page: Int,
         pageSize: Int = PAGINATION_PAGE_SIZE
-    ): LiveData<List<Article>>
+    ): List<Article>
 
     @Query(
         """
@@ -69,22 +71,29 @@ interface ArticlesDao {
         LIMIT (:page * :pageSize)
         """
     )
-    fun searchArticlesOrderByFavoritesCountDESC(
+    suspend fun searchArticlesOrderByFavoritesCountDESC(
         query: String,
         page: Int,
         pageSize: Int = PAGINATION_PAGE_SIZE
-    ): LiveData<List<Article>>
+    ): List<Article>
 
     @Query("SELECT * FROM articles WHERE slug = :slug")
-    fun getArticleBySlug(slug: String): LiveData<Article>
+    suspend fun getArticleBySlug(slug: String): Article
 
     @Delete
     suspend fun deleteArticle(article: Article)
 
-    @Query("""
+    @Query(
+        """
         UPDATE articles SET title = :title, body = :body, image = :image, description = :description 
         WHERE id = :id
-        """)
-
-    fun updateArticle(id: Int, title: String, body: String, description: String, image: String)
+        """
+    )
+    suspend fun updateArticle(
+        id: Int,
+        title: String,
+        body: String,
+        description: String,
+        image: String
+    )
 }

@@ -1,12 +1,9 @@
 package xyz.harmonyapp.olympusblog.ui.auth
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
@@ -23,50 +20,39 @@ class LauncherFragment
 @Inject
 constructor(
     private val viewModelFactory: ViewModelProvider.Factory
-) : Fragment() {
-
-    private val TAG: String = "AppDebug"
+) : BaseAuthFragment(viewModelFactory) {
 
     private var _binding: FragmentLauncherBinding? = null
     private val binding get() = _binding!!
-
-    val viewModel: AuthViewModel by viewModels {
-        viewModelFactory
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        viewModel.cancelActiveJobs()
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         super.onCreate(savedInstanceState)
-        viewModel.cancelActiveJobs()
         _binding = FragmentLauncherBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        Log.d(TAG, "LauncherFragment: ${viewModel}")
 
+        with(binding) {
 
-        binding.loginButton.setOnClickListener {
-            login()
+            loginButton.setOnClickListener {
+                login()
+            }
+
+            register.setOnClickListener {
+                navRegister()
+            }
+
+            forgotPassword.setOnClickListener {
+                navForgotPassword()
+            }
+
+            focusableView.requestFocus() // reset focus
         }
-
-        binding.register.setOnClickListener {
-            navRegister()
-        }
-
-        binding.forgotPassword.setOnClickListener {
-            navForgotPassword()
-        }
-
-        binding.focusableView.requestFocus() // reset focus
 
         subscribeObservers()
     }
@@ -92,7 +78,7 @@ constructor(
         viewModel.viewState.observe(viewLifecycleOwner, Observer {
             it.loginFields?.let {
                 it.login_email?.let { binding.inputEmail.setText(it) }
-                it.login_password?.let { binding.inputEmail.setText(it) }
+                it.login_password?.let { binding.inputPassword.setText(it) }
             }
         })
     }

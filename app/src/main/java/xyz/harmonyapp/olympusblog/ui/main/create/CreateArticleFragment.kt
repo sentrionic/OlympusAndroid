@@ -8,7 +8,6 @@ import android.provider.MediaStore
 import android.util.Log
 import android.view.*
 import androidx.appcompat.app.AppCompatActivity
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.RequestManager
@@ -22,14 +21,18 @@ import okhttp3.RequestBody
 import xyz.harmonyapp.olympusblog.R
 import xyz.harmonyapp.olympusblog.databinding.FragmentCreateArticleBinding
 import xyz.harmonyapp.olympusblog.di.main.MainScope
-import xyz.harmonyapp.olympusblog.ui.*
+import xyz.harmonyapp.olympusblog.ui.AreYouSureCallback
 import xyz.harmonyapp.olympusblog.ui.main.create.state.CREATE_ARTICLE_VIEW_STATE_BUNDLE_KEY
 import xyz.harmonyapp.olympusblog.ui.main.create.state.CreateArticleStateEvent.CreateNewArticleEvent
 import xyz.harmonyapp.olympusblog.ui.main.create.state.CreateArticleViewState
 import xyz.harmonyapp.olympusblog.utils.Constants.Companion.GALLERY_REQUEST_CODE
 import xyz.harmonyapp.olympusblog.utils.ErrorHandling.Companion.ERROR_MUST_SELECT_IMAGE
 import xyz.harmonyapp.olympusblog.utils.ErrorHandling.Companion.ERROR_SOMETHING_WRONG_WITH_IMAGE
+import xyz.harmonyapp.olympusblog.utils.MessageType
+import xyz.harmonyapp.olympusblog.utils.Response
+import xyz.harmonyapp.olympusblog.utils.StateMessageCallback
 import xyz.harmonyapp.olympusblog.utils.SuccessHandling.Companion.SUCCESS_ARTICLE_CREATED
+import xyz.harmonyapp.olympusblog.utils.UIComponentType
 import java.io.File
 import java.util.concurrent.Executors
 import javax.inject.Inject
@@ -38,21 +41,16 @@ import javax.inject.Inject
 class CreateArticleFragment
 @Inject
 constructor(
-    private val viewModelFactory: ViewModelProvider.Factory,
+    viewModelFactory: ViewModelProvider.Factory,
     private val requestManager: RequestManager,
     private val editor: MarkwonEditor
-) : BaseCreateArticleFragment() {
+) : BaseCreateArticleFragment(viewModelFactory) {
 
     private var _binding: FragmentCreateArticleBinding? = null
     private val binding get() = _binding!!
 
-    val viewModel: CreateArticleViewModel by viewModels {
-        viewModelFactory
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        cancelActiveJobs()
         // Restore state after process death
         savedInstanceState?.let { inState ->
             (inState[CREATE_ARTICLE_VIEW_STATE_BUNDLE_KEY] as CreateArticleViewState?)?.let { viewState ->
@@ -67,10 +65,6 @@ constructor(
             viewModel.viewState.value
         )
         super.onSaveInstanceState(outState)
-    }
-
-    override fun cancelActiveJobs() {
-        viewModel.cancelActiveJobs()
     }
 
     override fun onCreateView(
@@ -88,13 +82,13 @@ constructor(
         (activity as AppCompatActivity).supportActionBar?.setDisplayShowTitleEnabled(true)
 
         binding.articleImage.setOnClickListener {
-            if (stateChangeListener.isStoragePermissionGranted()) {
+            if (uiCommunicationListener.isStoragePermissionGranted()) {
                 pickFromGallery()
             }
         }
 
         binding.updateTextview.setOnClickListener {
-            if (stateChangeListener.isStoragePermissionGranted()) {
+            if (uiCommunicationListener.isStoragePermissionGranted()) {
                 pickFromGallery()
             }
         }
@@ -145,7 +139,7 @@ constructor(
                     )
                 )
             }
-            stateChangeListener.hideSoftKeyboard()
+            uiCommunicationListener.hideSoftKeyboard()
         } ?: showErrorDialog(ERROR_MUST_SELECT_IMAGE)
 
     }
@@ -160,31 +154,35 @@ constructor(
     }
 
     fun subscribeObservers() {
-        viewModel.dataState.observe(viewLifecycleOwner, Observer { dataState ->
-            if (dataState != null) {
-                stateChangeListener.onDataStateChange(dataState)
-                dataState.data?.let { data ->
-                    data.response?.let { event ->
-                        event.peekContent().let { response ->
-                            response.message?.let { message ->
-                                if (message == SUCCESS_ARTICLE_CREATED) {
-                                    viewModel.clearNewArticleFields()
-                                }
-                            }
-                        }
-                    }
-                }
+        viewModel.viewState.observe(viewLifecycleOwner, Observer { viewState ->
+            viewState.articleFields.let { articleFields ->
+                setArticleProperties(
+                    articleFields.newArticleTitle,
+                    articleFields.newArticleDescription,
+                    articleFields.newArticleBody,
+                    articleFields.newArticleTags,
+                    articleFields.newImageUri
+                )
             }
         })
 
-        viewModel.viewState.observe(viewLifecycleOwner, Observer { viewState ->
-            viewState.articleFields.let { newArticleFields ->
-                setArticleProperties(
-                    newArticleFields.newArticleTitle,
-                    newArticleFields.newArticleDescription,
-                    newArticleFields.newArticleBody,
-                    newArticleFields.newArticleTags,
-                    newArticleFields.newImageUri
+        viewModel.numActiveJobs.observe(viewLifecycleOwner, Observer { jobCounter ->
+            uiCommunicationListener.displayProgressBar(viewModel.areAnyJobsActive())
+        })
+
+        viewModel.stateMessage.observe(viewLifecycleOwner, Observer { stateMessage ->
+
+            stateMessage?.let {
+                if (it.response.message.equals(SUCCESS_ARTICLE_CREATED)) {
+                    viewModel.clearNewArticleFields()
+                }
+                uiCommunicationListener.onResponseReceived(
+                    response = it.response,
+                    stateMessageCallback = object : StateMessageCallback {
+                        override fun removeMessageFromStack() {
+                            viewModel.clearStateMessage()
+                        }
+                    }
                 )
             }
         })
@@ -262,12 +260,17 @@ constructor(
     }
 
     private fun showErrorDialog(errorMessage: String) {
-        stateChangeListener.onDataStateChange(
-            DataState(
-                Event(StateError(Response(errorMessage, ResponseType.Dialog()))),
-                Loading(isLoading = false),
-                Data(Event.dataEvent(null), null)
-            )
+        uiCommunicationListener.onResponseReceived(
+            response = Response(
+                message = errorMessage,
+                uiComponentType = UIComponentType.Dialog(),
+                messageType = MessageType.Error()
+            ),
+            stateMessageCallback = object : StateMessageCallback {
+                override fun removeMessageFromStack() {
+                    viewModel.clearStateMessage()
+                }
+            }
         )
     }
 
@@ -302,11 +305,17 @@ constructor(
                     }
 
                 }
-                uiCommunicationListener.onUIMessageReceived(
-                    UIMessage(
-                        getString(R.string.are_you_sure_publish),
-                        UIMessageType.AreYouSureDialog(callback)
-                    )
+                uiCommunicationListener.onResponseReceived(
+                    response = Response(
+                        message = getString(R.string.are_you_sure_publish),
+                        uiComponentType = UIComponentType.AreYouSureDialog(callback),
+                        messageType = MessageType.Info()
+                    ),
+                    stateMessageCallback = object : StateMessageCallback {
+                        override fun removeMessageFromStack() {
+                            viewModel.clearStateMessage()
+                        }
+                    }
                 )
                 return true
             }

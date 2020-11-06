@@ -13,7 +13,7 @@ interface AuthTokenDao {
     suspend fun insert(authToken: AuthToken): Long
 
     @Query("UPDATE auth_token SET token = null WHERE account_id = :id")
-    fun nullifyToken(id: Int): Int
+    suspend fun nullifyToken(id: Int): Int
 
     @Query("SELECT * FROM auth_token WHERE account_id = :id")
     suspend fun searchById(id: Int): AuthToken?

@@ -8,7 +8,6 @@ import android.provider.MediaStore
 import android.util.Log
 import android.view.*
 import androidx.core.net.toUri
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.RequestManager
@@ -22,11 +21,15 @@ import xyz.harmonyapp.olympusblog.R
 import xyz.harmonyapp.olympusblog.databinding.FragmentUpdateAccountBinding
 import xyz.harmonyapp.olympusblog.di.main.MainScope
 import xyz.harmonyapp.olympusblog.models.AccountProperties
-import xyz.harmonyapp.olympusblog.ui.*
 import xyz.harmonyapp.olympusblog.ui.main.account.state.ACCOUNT_VIEW_STATE_BUNDLE_KEY
 import xyz.harmonyapp.olympusblog.ui.main.account.state.AccountStateEvent.UpdateAccountPropertiesEvent
 import xyz.harmonyapp.olympusblog.ui.main.account.state.AccountViewState
 import xyz.harmonyapp.olympusblog.utils.Constants.Companion.GALLERY_REQUEST_CODE
+import xyz.harmonyapp.olympusblog.utils.ErrorHandling.Companion.SOMETHING_WRONG_WITH_IMAGE
+import xyz.harmonyapp.olympusblog.utils.MessageType
+import xyz.harmonyapp.olympusblog.utils.Response
+import xyz.harmonyapp.olympusblog.utils.StateMessageCallback
+import xyz.harmonyapp.olympusblog.utils.UIComponentType
 import java.io.File
 import javax.inject.Inject
 
@@ -34,20 +37,15 @@ import javax.inject.Inject
 class UpdateAccountFragment
 @Inject
 constructor(
-    private val viewModelFactory: ViewModelProvider.Factory,
+    viewModelFactory: ViewModelProvider.Factory,
     private val requestManager: RequestManager
-) : BaseAccountFragment() {
+) : BaseAccountFragment(viewModelFactory) {
 
     private var _binding: FragmentUpdateAccountBinding? = null
     private val binding get() = _binding!!
 
-    val viewModel: AccountViewModel by viewModels {
-        viewModelFactory
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        cancelActiveJobs()
         // Restore state after process death
         savedInstanceState?.let { inState ->
             (inState[ACCOUNT_VIEW_STATE_BUNDLE_KEY] as AccountViewState?)?.let { viewState ->
@@ -71,26 +69,38 @@ constructor(
         subscribeObservers()
 
         binding.profilePhoto.setOnClickListener {
-            if (stateChangeListener.isStoragePermissionGranted()) {
+            if (uiCommunicationListener.isStoragePermissionGranted()) {
                 pickFromGallery()
             }
         }
     }
 
     private fun subscribeObservers() {
-        viewModel.dataState.observe(viewLifecycleOwner, Observer { dataState ->
-            if (dataState != null) {
-                stateChangeListener.onDataStateChange(dataState)
-                Log.d(TAG, "UpdateAccountFragment, DataState: ${dataState}")
-            }
-        })
 
         viewModel.viewState.observe(viewLifecycleOwner, Observer { viewState ->
             if (viewState != null) {
                 viewState.accountProperties?.let {
-                    Log.d(TAG, "UpdateAccountFragment, ViewState: ${it}")
                     setAccountDataFields(it, viewState.updatedImageUri ?: it.image.toUri())
                 }
+            }
+        })
+
+        viewModel.numActiveJobs.observe(viewLifecycleOwner, Observer { jobCounter ->
+            uiCommunicationListener.displayProgressBar(viewModel.areAnyJobsActive())
+        })
+
+        viewModel.stateMessage.observe(viewLifecycleOwner, Observer { stateMessage ->
+
+            stateMessage?.let {
+
+                uiCommunicationListener.onResponseReceived(
+                    response = it.response,
+                    stateMessageCallback = object : StateMessageCallback {
+                        override fun removeMessageFromStack() {
+                            viewModel.clearStateMessage()
+                        }
+                    }
+                )
             }
         })
     }
@@ -148,7 +158,7 @@ constructor(
                 multipartBody
             )
         )
-        stateChangeListener.hideSoftKeyboard()
+        uiCommunicationListener.hideSoftKeyboard()
     }
 
     private fun pickFromGallery() {
@@ -174,19 +184,17 @@ constructor(
     }
 
     private fun showImageSelectionError() {
-        stateChangeListener.onDataStateChange(
-            DataState(
-                Event(
-                    StateError(
-                        Response(
-                            "Something went wrong with the image.",
-                            ResponseType.Dialog()
-                        )
-                    )
-                ),
-                Loading(isLoading = false),
-                Data(Event.dataEvent(null), null)
-            )
+        uiCommunicationListener.onResponseReceived(
+            response = Response(
+                message = SOMETHING_WRONG_WITH_IMAGE,
+                uiComponentType = UIComponentType.Dialog(),
+                messageType = MessageType.Error()
+            ),
+            stateMessageCallback = object : StateMessageCallback {
+                override fun removeMessageFromStack() {
+                    viewModel.clearStateMessage()
+                }
+            }
         )
     }
 
@@ -233,10 +241,6 @@ constructor(
             }
         }
         return super.onOptionsItemSelected(item)
-    }
-
-    override fun cancelActiveJobs() {
-        viewModel.cancelActiveJobs()
     }
 
     override fun onDestroyView() {

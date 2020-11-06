@@ -7,7 +7,7 @@ import xyz.harmonyapp.olympusblog.models.Article
 import xyz.harmonyapp.olympusblog.models.AuthToken
 
 @Database(entities = [AuthToken::class, AccountProperties::class, Article::class], version = 1)
-abstract class AppDatabase: RoomDatabase() {
+abstract class AppDatabase : RoomDatabase() {
 
     abstract fun getAuthTokenDao(): AuthTokenDao
 
@@ -15,7 +15,7 @@ abstract class AppDatabase: RoomDatabase() {
 
     abstract fun getArticlesDao(): ArticlesDao
 
-    companion object{
+    companion object {
         val DATABASE_NAME: String = "app_db"
     }
 }

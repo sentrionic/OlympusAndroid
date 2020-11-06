@@ -2,7 +2,7 @@ package xyz.harmonyapp.olympusblog.api.main.dto
 
 import com.squareup.moshi.Json
 
-data class ChangePasswordDTO (
+data class ChangePasswordDTO(
 
     @Json(name = "currentPassword")
     var currentPassword: String,

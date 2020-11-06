@@ -1,7 +1,6 @@
 package xyz.harmonyapp.olympusblog.ui.auth
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -11,8 +10,6 @@ import android.view.animation.TranslateAnimation
 import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.CoroutineScope
@@ -20,11 +17,7 @@ import kotlinx.coroutines.Dispatchers.Main
 import kotlinx.coroutines.launch
 import xyz.harmonyapp.olympusblog.databinding.FragmentForgotPasswordBinding
 import xyz.harmonyapp.olympusblog.di.auth.AuthScope
-import xyz.harmonyapp.olympusblog.ui.DataState
-import xyz.harmonyapp.olympusblog.ui.DataStateChangeListener
-import xyz.harmonyapp.olympusblog.ui.Response
-import xyz.harmonyapp.olympusblog.ui.ResponseType
-import xyz.harmonyapp.olympusblog.utils.Constants
+import xyz.harmonyapp.olympusblog.utils.*
 import javax.inject.Inject
 
 @AuthScope
@@ -32,17 +25,10 @@ class ForgotPasswordFragment
 @Inject
 constructor(
     private val viewModelFactory: ViewModelProvider.Factory
-) : Fragment() {
+) : BaseAuthFragment(viewModelFactory) {
 
-    private val TAG: String = "AppDebug"
-
-    val viewModel: AuthViewModel by viewModels {
-        viewModelFactory
-    }
 
     lateinit var webView: WebView
-
-    lateinit var stateChangeListener: DataStateChangeListener
 
     private var _binding: FragmentForgotPasswordBinding? = null
     private val binding get() = _binding!!
@@ -52,12 +38,17 @@ constructor(
 
         override fun onError(errorMessage: String) {
             Log.e(TAG, "onError: $errorMessage")
-
-            val dataState = DataState.error<Any>(
-                response = Response(errorMessage, ResponseType.Dialog())
-            )
-            stateChangeListener.onDataStateChange(
-                dataState = dataState
+            uiCommunicationListener.onResponseReceived(
+                response = Response(
+                    message = errorMessage,
+                    uiComponentType = UIComponentType.Dialog(),
+                    messageType = MessageType.Error()
+                ),
+                stateMessageCallback = object : StateMessageCallback {
+                    override fun removeMessageFromStack() {
+                        viewModel.clearStateMessage()
+                    }
+                }
             )
         }
 
@@ -68,17 +59,8 @@ constructor(
 
         override fun onLoading(isLoading: Boolean) {
             Log.d(TAG, "onLoading... ")
-            CoroutineScope(Main).launch {
-                stateChangeListener.onDataStateChange(
-                    DataState.loading(isLoading = isLoading, cachedData = null)
-                )
-            }
+            uiCommunicationListener.displayProgressBar(isLoading)
         }
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        viewModel.cancelActiveJobs()
     }
 
     override fun onCreateView(
@@ -102,15 +84,11 @@ constructor(
 
     @SuppressLint("SetJavaScriptEnabled", "JavascriptInterface")
     fun loadPasswordResetWebView() {
-        stateChangeListener.onDataStateChange(
-            DataState.loading(isLoading = true, cachedData = null)
-        )
+        uiCommunicationListener.displayProgressBar(true)
         webView.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
-                stateChangeListener.onDataStateChange(
-                    DataState.loading(isLoading = false, cachedData = null)
-                )
+                uiCommunicationListener.displayProgressBar(false)
             }
         }
         webView.loadUrl(Constants.PASSWORD_RESET_URL)
@@ -168,15 +146,6 @@ constructor(
             animation.duration = 500
             binding.passwordResetDoneContainer.startAnimation(animation)
             binding.passwordResetDoneContainer.visibility = View.VISIBLE
-        }
-    }
-
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        try {
-            stateChangeListener = context as DataStateChangeListener
-        } catch (e: ClassCastException) {
-            Log.e(TAG, "$context must implement DataStateChangeListener")
         }
     }
 

@@ -10,9 +10,7 @@ import xyz.harmonyapp.olympusblog.api.main.MainService
 import xyz.harmonyapp.olympusblog.persistence.AccountPropertiesDao
 import xyz.harmonyapp.olympusblog.persistence.AppDatabase
 import xyz.harmonyapp.olympusblog.persistence.ArticlesDao
-import xyz.harmonyapp.olympusblog.repository.main.AccountRepository
-import xyz.harmonyapp.olympusblog.repository.main.ArticleRepository
-import xyz.harmonyapp.olympusblog.repository.main.CreateArticleRepository
+import xyz.harmonyapp.olympusblog.repository.main.*
 import xyz.harmonyapp.olympusblog.session.SessionManager
 
 @Module
@@ -21,7 +19,7 @@ object MainModule {
     @JvmStatic
     @MainScope
     @Provides
-    fun provideOpenApiMainService(retrofitBuilder: Retrofit.Builder): MainService {
+    fun provideMainService(retrofitBuilder: Retrofit.Builder): MainService {
         return retrofitBuilder
             .build()
             .create(MainService::class.java)
@@ -35,7 +33,7 @@ object MainModule {
         accountPropertiesDao: AccountPropertiesDao,
         sessionManager: SessionManager
     ): AccountRepository {
-        return AccountRepository(mainService, accountPropertiesDao, sessionManager)
+        return AccountRepositoryImpl(mainService, accountPropertiesDao, sessionManager)
     }
 
     @JvmStatic
@@ -67,7 +65,7 @@ object MainModule {
         articlesDao: ArticlesDao,
         sessionManager: SessionManager
     ): ArticleRepository {
-        return ArticleRepository(mainService, articlesDao, sessionManager)
+        return ArticleRepositoryImpl(mainService, articlesDao, sessionManager)
     }
 
     @JvmStatic
@@ -78,6 +76,6 @@ object MainModule {
         articlesDao: ArticlesDao,
         sessionManager: SessionManager
     ): CreateArticleRepository {
-        return CreateArticleRepository(mainService, articlesDao, sessionManager)
+        return CreateArticleRepositoryImpl(mainService, articlesDao, sessionManager)
     }
 }

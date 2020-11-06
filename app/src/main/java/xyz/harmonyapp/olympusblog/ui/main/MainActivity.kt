@@ -8,9 +8,7 @@ import android.view.View
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentFactory
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavController
-import com.bumptech.glide.RequestManager
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import xyz.harmonyapp.olympusblog.BaseApplication
 import xyz.harmonyapp.olympusblog.R
@@ -19,13 +17,10 @@ import xyz.harmonyapp.olympusblog.models.AUTH_TOKEN_BUNDLE_KEY
 import xyz.harmonyapp.olympusblog.models.AuthToken
 import xyz.harmonyapp.olympusblog.ui.BaseActivity
 import xyz.harmonyapp.olympusblog.ui.auth.AuthActivity
-import xyz.harmonyapp.olympusblog.ui.main.account.BaseAccountFragment
 import xyz.harmonyapp.olympusblog.ui.main.account.ChangePasswordFragment
 import xyz.harmonyapp.olympusblog.ui.main.account.UpdateAccountFragment
-import xyz.harmonyapp.olympusblog.ui.main.article.BaseArticleFragment
 import xyz.harmonyapp.olympusblog.ui.main.article.UpdateArticleFragment
 import xyz.harmonyapp.olympusblog.ui.main.article.ViewArticleFragment
-import xyz.harmonyapp.olympusblog.ui.main.create.BaseCreateArticleFragment
 import xyz.harmonyapp.olympusblog.utils.BOTTOM_NAV_BACKSTACK_KEY
 import xyz.harmonyapp.olympusblog.utils.BottomNavController
 import xyz.harmonyapp.olympusblog.utils.BottomNavController.*
@@ -52,9 +47,6 @@ class MainActivity : BaseActivity(),
     @Inject
     @Named("CreateArticleFragmentFactory")
     lateinit var createArticleFragmentFactory: FragmentFactory
-
-    @Inject
-    lateinit var requestManager: RequestManager
 
     private val bottomNavController by lazy(LazyThreadSafetyMode.NONE) {
         BottomNavController(
@@ -140,7 +132,6 @@ class MainActivity : BaseActivity(),
     }
 
     override fun onGraphChange() {
-        cancelActiveJobs()
         expandAppBar()
     }
 
@@ -172,27 +163,6 @@ class MainActivity : BaseActivity(),
 
     override fun expandAppBar() {
         binding.appBar.setExpanded(true)
-    }
-
-    private fun cancelActiveJobs() {
-        val fragments = bottomNavController.fragmentManager
-            .findFragmentById(bottomNavController.containerId)
-            ?.childFragmentManager
-            ?.fragments
-        if (fragments != null) {
-            for (fragment in fragments) {
-                if (fragment is BaseAccountFragment) {
-                    fragment.cancelActiveJobs()
-                }
-                if (fragment is BaseArticleFragment) {
-                    fragment.cancelActiveJobs()
-                }
-                if (fragment is BaseCreateArticleFragment) {
-                    fragment.cancelActiveJobs()
-                }
-            }
-        }
-        displayProgressBar(false)
     }
 
     override fun onBackPressed() = bottomNavController.onBackPressed()

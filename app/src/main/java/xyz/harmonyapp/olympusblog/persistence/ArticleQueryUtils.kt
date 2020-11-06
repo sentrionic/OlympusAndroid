@@ -1,12 +1,11 @@
 package xyz.harmonyapp.olympusblog.persistence
 
-import androidx.lifecycle.LiveData
 import xyz.harmonyapp.olympusblog.models.Article
 
 class ArticleQueryUtils {
 
 
-    companion object{
+    companion object {
         private val TAG: String = "AppDebug"
 
         // values
@@ -16,11 +15,11 @@ class ArticleQueryUtils {
     }
 }
 
-fun ArticlesDao.returnOrderedQuery(
+suspend fun ArticlesDao.returnOrderedQuery(
     query: String,
     order: String,
     page: Int
-): LiveData<List<Article>> {
+): List<Article> {
 
     when {
 

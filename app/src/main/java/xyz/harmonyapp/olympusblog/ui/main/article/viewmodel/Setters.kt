@@ -34,12 +34,6 @@ fun ArticleViewModel.setQueryExhausted(isExhausted: Boolean) {
     setViewState(update)
 }
 
-fun ArticleViewModel.setQueryInProgress(isInProgress: Boolean) {
-    val update = getCurrentViewStateOrNew()
-    update.articleFields.isQueryInProgress = isInProgress
-    setViewState(update)
-}
-
 fun ArticleViewModel.setArticleOrder(order: String) {
     val update = getCurrentViewStateOrNew()
     update.articleFields.order = order
@@ -48,14 +42,16 @@ fun ArticleViewModel.setArticleOrder(order: String) {
 
 fun ArticleViewModel.removeDeletedArticle() {
     val update = getCurrentViewStateOrNew()
-    val list = update.articleFields.articleList.toMutableList()
-    for (i in 0 until list.size) {
-        if (list[i] == getArticle()) {
-            list.remove(getArticle())
-            break
+    val list = update.articleFields.articleList?.toMutableList()
+    if (list != null) {
+        for (i in 0 until list.size) {
+            if (list[i] == getArticle()) {
+                list.remove(getArticle())
+                break
+            }
         }
+        setArticleListData(list)
     }
-    setArticleListData(list)
 }
 
 fun ArticleViewModel.setUpdatedArticleFields(
@@ -74,29 +70,20 @@ fun ArticleViewModel.setUpdatedArticleFields(
     setViewState(update)
 }
 
-fun ArticleViewModel.updateListItem(newArticle: Article) {
+fun ArticleViewModel.updateListItem() {
     val update = getCurrentViewStateOrNew()
-    val list = update.articleFields.articleList.toMutableList()
-    for (i in 0 until list.size) {
-        if (list[i].id == newArticle.id) {
-            list[i] = newArticle
-            break
+    val list = update.articleFields.articleList?.toMutableList()
+    if (list != null) {
+        val newArticle = getArticle()
+        for (i in 0 until list.size) {
+            if (list[i].id == newArticle.id) {
+                list[i] = newArticle
+                break
+            }
         }
+        update.articleFields.articleList = list
+        setViewState(update)
     }
-    update.articleFields.articleList = list
-    setViewState(update)
-}
-
-
-fun ArticleViewModel.onArticleUpdateSuccess(article: Article) {
-    setUpdatedArticleFields(
-        uri = null,
-        title = article.title,
-        description = article.description,
-        body = article.body
-    ) // update UpdateBlogFragment (not really necessary since navigating back)
-    setArticle(article) // update ViewBlogFragment
-    updateListItem(article) // update BlogFragment
 }
 
 fun ArticleViewModel.setLayoutManagerState(layoutManagerState: Parcelable) {
@@ -108,6 +95,38 @@ fun ArticleViewModel.setLayoutManagerState(layoutManagerState: Parcelable) {
 fun ArticleViewModel.clearLayoutManagerState() {
     val update = getCurrentViewStateOrNew()
     update.articleFields.layoutManagerState = null
+    setViewState(update)
+}
+
+fun ArticleViewModel.setUpdatedUri(uri: Uri) {
+    val update = getCurrentViewStateOrNew()
+    val updatedArticleFields = update.updatedArticleFields
+    updatedArticleFields.updatedImageUri = uri
+    update.updatedArticleFields = updatedArticleFields
+    setViewState(update)
+}
+
+fun ArticleViewModel.setUpdatedTitle(title: String) {
+    val update = getCurrentViewStateOrNew()
+    val updatedArticleFields = update.updatedArticleFields
+    updatedArticleFields.updatedArticleTitle = title
+    update.updatedArticleFields = updatedArticleFields
+    setViewState(update)
+}
+
+fun ArticleViewModel.setUpdatedDescription(description: String) {
+    val update = getCurrentViewStateOrNew()
+    val updatedArticleFields = update.updatedArticleFields
+    updatedArticleFields.updatedArticleDescription = description
+    update.updatedArticleFields = updatedArticleFields
+    setViewState(update)
+}
+
+fun ArticleViewModel.setUpdatedBody(body: String) {
+    val update = getCurrentViewStateOrNew()
+    val updatedArticleFields = update.updatedArticleFields
+    updatedArticleFields.updatedArticleBody = body
+    update.updatedArticleFields = updatedArticleFields
     setViewState(update)
 }
 

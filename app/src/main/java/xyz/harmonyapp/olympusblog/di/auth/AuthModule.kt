@@ -8,6 +8,7 @@ import xyz.harmonyapp.olympusblog.api.auth.AuthService
 import xyz.harmonyapp.olympusblog.persistence.AccountPropertiesDao
 import xyz.harmonyapp.olympusblog.persistence.AuthTokenDao
 import xyz.harmonyapp.olympusblog.repository.auth.AuthRepository
+import xyz.harmonyapp.olympusblog.repository.auth.AuthRepositoryImpl
 import xyz.harmonyapp.olympusblog.session.SessionManager
 
 @Module
@@ -33,7 +34,7 @@ object AuthModule {
         preferences: SharedPreferences,
         editor: SharedPreferences.Editor
     ): AuthRepository {
-        return AuthRepository(
+        return AuthRepositoryImpl(
             authTokenDao,
             accountPropertiesDao,
             authService,

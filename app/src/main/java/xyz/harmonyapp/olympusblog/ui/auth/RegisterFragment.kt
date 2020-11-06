@@ -4,8 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import xyz.harmonyapp.olympusblog.databinding.FragmentRegisterBinding
@@ -19,21 +17,10 @@ class RegisterFragment
 @Inject
 constructor(
     private val viewModelFactory: ViewModelProvider.Factory
-) : Fragment() {
+) : BaseAuthFragment(viewModelFactory) {
 
     private var _binding: FragmentRegisterBinding? = null
     private val binding get() = _binding!!
-
-    private val TAG: String = "AppDebug"
-
-    val viewModel: AuthViewModel by viewModels {
-        viewModelFactory
-    }
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        viewModel.cancelActiveJobs()
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -55,7 +42,7 @@ constructor(
         subscribeObservers()
     }
 
-    fun register() {
+    private fun register() {
         viewModel.setStateEvent(
             RegisterAttemptEvent(
                 binding.inputEmail.text.toString(),
@@ -77,7 +64,6 @@ constructor(
 
     override fun onDestroyView() {
         super.onDestroyView()
-        _binding = null
         viewModel.setRegistrationFields(
             RegistrationFields(
                 binding.inputEmail.text.toString(),
@@ -85,6 +71,7 @@ constructor(
                 binding.inputPassword.text.toString(),
             )
         )
+        _binding = null
     }
 
 }

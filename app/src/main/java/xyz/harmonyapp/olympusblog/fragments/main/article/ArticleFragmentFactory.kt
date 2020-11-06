@@ -3,6 +3,7 @@ package xyz.harmonyapp.olympusblog.fragments.main.article
 import androidx.fragment.app.FragmentFactory
 import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.RequestManager
+import com.bumptech.glide.request.RequestOptions
 import io.noties.markwon.Markwon
 import io.noties.markwon.editor.MarkwonEditor
 import xyz.harmonyapp.olympusblog.di.main.MainScope
@@ -16,6 +17,7 @@ class ArticleFragmentFactory
 @Inject
 constructor(
     private val viewModelFactory: ViewModelProvider.Factory,
+    private val requestOptions: RequestOptions,
     private val requestManager: RequestManager,
     private val markwon: Markwon,
     private val editor: MarkwonEditor
@@ -26,7 +28,7 @@ constructor(
         when (className) {
 
             ArticleFragment::class.java.name -> {
-                ArticleFragment(viewModelFactory, requestManager)
+                ArticleFragment(viewModelFactory, requestOptions)
             }
 
             ViewArticleFragment::class.java.name -> {
@@ -38,7 +40,7 @@ constructor(
             }
 
             else -> {
-                ArticleFragment(viewModelFactory, requestManager)
+                ArticleFragment(viewModelFactory, requestOptions)
             }
         }
 

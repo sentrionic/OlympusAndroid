@@ -2,7 +2,7 @@ package xyz.harmonyapp.olympusblog.api.main.responses
 
 import com.squareup.moshi.Json
 
-data class AuthorResponse (
+data class AuthorResponse(
 
     @Json(name = "id")
     var id: Int,

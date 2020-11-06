@@ -1,14 +1,5 @@
 package xyz.harmonyapp.olympusblog.utils
 
-import android.util.Log
-import com.squareup.moshi.JsonAdapter
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.Types
-import org.json.JSONArray
-import org.json.JSONException
-import org.json.JSONObject
-import xyz.harmonyapp.olympusblog.api.response.FieldError
-
 class ErrorHandling {
 
 
@@ -28,38 +19,17 @@ class ErrorHandling {
         const val ERROR_MUST_SELECT_IMAGE = "You must select an image."
 
         const val GENERIC_AUTH_ERROR = "Error"
-        const val PAGINATION_DONE_ERROR = "Invalid page."
+        const val INVALID_PAGE = "Invalid page."
         const val ERROR_CHECK_NETWORK_CONNECTION = "Check network connection."
         const val ERROR_UNKNOWN = "Unknown error"
-        private val errorList = Types.newParameterizedType(MutableList::class.java, FieldError::class.java)
-        private val adapter: JsonAdapter<List<FieldError>> = Moshi.Builder().build().adapter(errorList)
-
-
-        fun isNetworkError(msg: String): Boolean {
-            return when {
-                msg.contains(UNABLE_TO_RESOLVE_HOST) -> true
-                else -> false
-            }
-        }
-
-        fun parseDetailJsonResponse(rawJson: String?): String {
-            Log.d(TAG, "parseDetailJsonResponse: ${rawJson}")
-            try {
-                if (!rawJson.isNullOrBlank()) {
-                    if (rawJson == ERROR_CHECK_NETWORK_CONNECTION) {
-                        return PAGINATION_DONE_ERROR
-                    }
-                    val errorJson = JSONObject(rawJson).get("errors")
-                    val errors = JSONArray(errorJson.toString())
-                    var out = ""
-                    adapter.fromJson(errors.toString())?.forEach { error -> out += "${error.message}\n" }
-                    return out
-                }
-            } catch (e: JSONException) {
-                Log.e(TAG, "parseDetailJsonResponse: ${e.message}")
-            }
-            return ""
-        }
+        const val INVALID_CREDENTIALS = "Invalid credentials"
+        const val SOMETHING_WRONG_WITH_IMAGE = "Something went wrong with the image."
+        const val INVALID_STATE_EVENT = "Invalid state event"
+        const val CANNOT_BE_UNDONE = "This can't be undone."
+        const val NETWORK_ERROR = "Network error"
+        const val NETWORK_ERROR_TIMEOUT = "Network timeout"
+        const val CACHE_ERROR_TIMEOUT = "Cache timeout"
+        const val UNKNOWN_ERROR = "Unknown error"
 
     }
 }

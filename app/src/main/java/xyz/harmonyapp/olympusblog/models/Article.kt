@@ -43,7 +43,7 @@ data class Article(
 
     @ColumnInfo(name = "profileImage")
     var profileImage: String
-): Parcelable {
+) : Parcelable {
     override fun toString(): String {
         return "Article(id=$id, title='$title', description='$description', slug='$slug', body='$body', image='$image', createdAt=$createdAt, favoritesCount=$favoritesCount, favorited=$favorited, username='$username', profileImage='$profileImage')"
     }

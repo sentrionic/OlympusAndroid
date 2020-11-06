@@ -4,7 +4,8 @@ import android.net.Uri
 import android.os.Parcelable
 import kotlinx.android.parcel.Parcelize
 
-const val CREATE_ARTICLE_VIEW_STATE_BUNDLE_KEY = "xyz.harmonyapp.olympusblog.ui.main.article.state.CreateArticleViewState"
+const val CREATE_ARTICLE_VIEW_STATE_BUNDLE_KEY =
+    "xyz.harmonyapp.olympusblog.ui.main.article.state.CreateArticleViewState"
 
 @Parcelize
 data class CreateArticleViewState(

@@ -1,20 +1,19 @@
 package xyz.harmonyapp.olympusblog.ui.main.article.viewmodel
 
 import android.content.SharedPreferences
-import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import okhttp3.MediaType
 import okhttp3.RequestBody
 import xyz.harmonyapp.olympusblog.di.main.MainScope
 import xyz.harmonyapp.olympusblog.persistence.ArticleQueryUtils
-import xyz.harmonyapp.olympusblog.repository.main.ArticleRepository
+import xyz.harmonyapp.olympusblog.repository.main.ArticleRepositoryImpl
 import xyz.harmonyapp.olympusblog.session.SessionManager
 import xyz.harmonyapp.olympusblog.ui.BaseViewModel
-import xyz.harmonyapp.olympusblog.ui.DataState
-import xyz.harmonyapp.olympusblog.ui.Loading
-import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleStateEvent
 import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleStateEvent.*
 import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleViewState
-import xyz.harmonyapp.olympusblog.utils.AbsentLiveData
+import xyz.harmonyapp.olympusblog.utils.*
+import xyz.harmonyapp.olympusblog.utils.ErrorHandling.Companion.INVALID_STATE_EVENT
 import xyz.harmonyapp.olympusblog.utils.PreferenceKeys.Companion.ARTICLE_ORDER
 import javax.inject.Inject
 
@@ -23,10 +22,10 @@ class ArticleViewModel
 @Inject
 constructor(
     private val sessionManager: SessionManager,
-    private val articleRepository: ArticleRepository,
+    private val articleRepository: ArticleRepositoryImpl,
     private val sharedPreferences: SharedPreferences,
     private val editor: SharedPreferences.Editor
-) : BaseViewModel<ArticleStateEvent, ArticleViewState>() {
+) : BaseViewModel<ArticleViewState>() {
 
     init {
         setArticleOrder(
@@ -37,93 +36,131 @@ constructor(
         )
     }
 
+    override fun handleNewData(data: ArticleViewState) {
 
-    override fun handleStateEvent(stateEvent: ArticleStateEvent): LiveData<DataState<ArticleViewState>> {
-        return when (stateEvent) {
+        data.articleFields.let { articleFields ->
 
-            is ArticleSearchEvent -> {
-                clearLayoutManagerState()
-                articleRepository.searchArticles(
-                    query = getSearchQuery(),
-                    order = getOrder(),
-                    page = getPage()
-                )
+            articleFields.articleList?.let { articleList ->
+                handleIncomingArticleListData(data)
             }
 
-            is RestoreArticleListFromCache -> {
-                articleRepository.restoreArticleListFromCache(
-                    query = getSearchQuery(),
-                    order = getOrder(),
-                    page = getPage()
-                )
+            articleFields.isQueryExhausted?.let { isQueryExhausted ->
+                setQueryExhausted(isQueryExhausted)
             }
 
-            is CheckAuthorOfArticle -> {
-                sessionManager.cachedToken.value?.let { authToken ->
-                    authToken.account_id?.let { id ->
-                        articleRepository.checkIfAuthor(
-                            id = id,
-                            slug = getSlug()
-                        )
+        }
+
+        data.viewArticleFields.let { viewArticleFields ->
+
+            viewArticleFields.article?.let { article ->
+                setArticle(article)
+            }
+
+            viewArticleFields.isAuthorOfArticle?.let { isAuthor ->
+                setIsAuthorOfArticle(isAuthor)
+            }
+        }
+
+        data.updatedArticleFields.let { updatedArticleFields ->
+
+            updatedArticleFields.updatedImageUri?.let { uri ->
+                setUpdatedUri(uri)
+            }
+
+            updatedArticleFields.updatedArticleTitle?.let { title ->
+                setUpdatedTitle(title)
+            }
+
+            updatedArticleFields.updatedArticleDescription?.let { description ->
+                setUpdatedDescription(description)
+            }
+
+            updatedArticleFields.updatedArticleBody?.let { body ->
+                setUpdatedBody(body)
+            }
+        }
+    }
+
+    override fun setStateEvent(stateEvent: StateEvent) {
+        if (!isJobAlreadyActive(stateEvent)) {
+            val job: Flow<DataState<ArticleViewState>> = when (stateEvent) {
+
+                is ArticleSearchEvent -> {
+                    if (stateEvent.clearLayoutManagerState) {
+                        clearLayoutManagerState()
                     }
-                } ?: AbsentLiveData.create()
-            }
+                    articleRepository.searchArticles(
+                        stateEvent = stateEvent,
+                        query = getSearchQuery(),
+                        order = getOrder(),
+                        page = getPage()
+                    )
+                }
 
-            is UpdateArticleEvent -> {
+                is CheckAuthorOfArticle -> {
+                    articleRepository.isAuthorOfArticle(
+                        id = sessionManager.cachedToken.value?.account_id ?: -1,
+                        slug = getSlug(),
+                        stateEvent = stateEvent
+                    )
+                }
 
-                val title = RequestBody.create(
-                    MediaType.parse("text/plain"),
-                    stateEvent.title
-                )
+                is UpdateArticleEvent -> {
 
-                val description = RequestBody.create(
-                    MediaType.parse("text/plain"),
-                    stateEvent.description
-                )
+                    val title = RequestBody.create(
+                        MediaType.parse("text/plain"),
+                        stateEvent.title
+                    )
 
-                val body = RequestBody.create(
-                    MediaType.parse("text/plain"),
-                    stateEvent.body
-                )
+                    val description = RequestBody.create(
+                        MediaType.parse("text/plain"),
+                        stateEvent.description
+                    )
 
-                articleRepository.updateArticle(
-                    slug = getSlug(),
-                    title = title,
-                    description = description,
-                    body = body,
-                    image = stateEvent.image
-                )
+                    val body = RequestBody.create(
+                        MediaType.parse("text/plain"),
+                        stateEvent.body
+                    )
 
-            }
+                    articleRepository.updateArticle(
+                        slug = getSlug(),
+                        title = title,
+                        description = description,
+                        body = body,
+                        image = stateEvent.image,
+                        stateEvent = stateEvent
+                    )
 
-            is DeleteArticleEvent -> {
-                articleRepository.deleteArticle(
-                    article = getArticle()
-                )
-            }
+                }
 
-            is None -> {
-                object : LiveData<DataState<ArticleViewState>>() {
-                    override fun onActive() {
-                        super.onActive()
-                        value = DataState(null, Loading(false), null)
+                is DeleteArticleEvent -> {
+                    articleRepository.deleteArticle(
+                        stateEvent = stateEvent,
+                        article = getArticle()
+                    )
+                }
+
+                else -> {
+                    flow {
+                        emit(
+                            DataState.error<ArticleViewState>(
+                                response = Response(
+                                    message = INVALID_STATE_EVENT,
+                                    uiComponentType = UIComponentType.None(),
+                                    messageType = MessageType.Error()
+                                ),
+                                stateEvent = stateEvent
+                            )
+                        )
                     }
                 }
             }
+            launchJob(stateEvent, job)
         }
     }
 
     override fun initNewViewState(): ArticleViewState {
         return ArticleViewState()
-    }
-
-    fun cancelActiveJobs() {
-        articleRepository.cancelActiveJobs() // cancel active jobs
-        handlePendingData() // hide progress bar
-    }
-
-    private fun handlePendingData() {
-        setStateEvent(None())
     }
 
     override fun onCleared() {

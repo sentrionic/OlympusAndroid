@@ -2,7 +2,6 @@ package xyz.harmonyapp.olympusblog.ui.main.article.viewmodel
 
 import android.util.Log
 import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleStateEvent.ArticleSearchEvent
-import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleStateEvent.RestoreArticleListFromCache
 import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleViewState
 
 fun ArticleViewModel.resetPage() {
@@ -12,48 +11,43 @@ fun ArticleViewModel.resetPage() {
 }
 
 fun ArticleViewModel.refreshFromCache() {
-    setQueryInProgress(true)
-    setQueryExhausted(false)
-    setStateEvent(RestoreArticleListFromCache())
+    if (!isJobAlreadyActive(ArticleSearchEvent())) {
+        setQueryExhausted(false)
+        setStateEvent(ArticleSearchEvent(false))
+    }
 }
 
 fun ArticleViewModel.loadFirstPage() {
-    setQueryInProgress(true)
-    setQueryExhausted(false)
-    resetPage()
-    setStateEvent(ArticleSearchEvent())
-    Log.e(TAG, "ArticleViewModel: loadFirstPage: ${getSearchQuery()}")
+    if (!isJobAlreadyActive(ArticleSearchEvent())) {
+        setQueryExhausted(false)
+        resetPage()
+        setStateEvent(ArticleSearchEvent())
+        Log.e(
+            TAG,
+            "ArticleViewModel: loadFirstPage: ${viewState.value!!.articleFields.searchQuery}"
+        )
+    }
 }
 
 private fun ArticleViewModel.incrementPageNumber() {
     val update = getCurrentViewStateOrNew()
-    val page = update.copy().articleFields.page // get current page
-    update.articleFields.page = page + 1
+    val page = update.copy().articleFields.page ?: 1
+    update.articleFields.page = page.plus(1)
     setViewState(update)
 }
 
 fun ArticleViewModel.nextPage() {
-    if (!getIsQueryInProgress()
+    if (!isJobAlreadyActive(ArticleSearchEvent())
         && !getIsQueryExhausted()
     ) {
         Log.d(TAG, "ArticleViewModel: Attempting to load next page...")
         incrementPageNumber()
-        setQueryInProgress(true)
         setStateEvent(ArticleSearchEvent())
     }
 }
 
 fun ArticleViewModel.handleIncomingArticleListData(viewState: ArticleViewState) {
-    Log.d(TAG, "ArticleViewModel, DataState: ${viewState}")
-    Log.d(
-        TAG, "ArticleViewModel, DataState: isQueryInProgress?: " +
-                "${viewState.articleFields.isQueryInProgress}"
-    )
-    Log.d(
-        TAG, "ArticleViewModel, DataState: isQueryExhausted?: " +
-                "${viewState.articleFields.isQueryExhausted}"
-    )
-    setQueryInProgress(viewState.articleFields.isQueryInProgress)
-    setQueryExhausted(viewState.articleFields.isQueryExhausted)
-    setArticleListData(viewState.articleFields.articleList)
+    viewState.articleFields.let { articleFields ->
+        articleFields.articleList?.let { setArticleListData(it) }
+    }
 }

@@ -2,7 +2,7 @@ package xyz.harmonyapp.olympusblog.utils
 
 class PreferenceKeys {
 
-    companion object{
+    companion object {
 
         // Shared Preference Files:
         const val APP_PREFERENCES: String = "xyz.harmonyapp.olympusblog.APP_PREFERENCES"

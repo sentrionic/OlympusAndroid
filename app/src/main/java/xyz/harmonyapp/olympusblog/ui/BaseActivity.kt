@@ -9,18 +9,24 @@ import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import com.afollestad.materialdialogs.MaterialDialog
+import com.afollestad.materialdialogs.callbacks.onDismiss
 import xyz.harmonyapp.olympusblog.BaseApplication
+import xyz.harmonyapp.olympusblog.R
 import xyz.harmonyapp.olympusblog.session.SessionManager
 import xyz.harmonyapp.olympusblog.utils.Constants.Companion.PERMISSIONS_REQUEST_READ_STORAGE
+import xyz.harmonyapp.olympusblog.utils.MessageType
+import xyz.harmonyapp.olympusblog.utils.Response
+import xyz.harmonyapp.olympusblog.utils.StateMessageCallback
+import xyz.harmonyapp.olympusblog.utils.UIComponentType
 import javax.inject.Inject
 
-abstract class BaseActivity : AppCompatActivity(), DataStateChangeListener,
+abstract class BaseActivity : AppCompatActivity(),
     UICommunicationListener {
 
     val TAG: String = "AppDebug"
+
+    private var dialogInView: MaterialDialog? = null
 
     @Inject
     lateinit var sessionManager: SessionManager
@@ -33,71 +39,89 @@ abstract class BaseActivity : AppCompatActivity(), DataStateChangeListener,
         super.onCreate(savedInstanceState)
     }
 
-    override fun onDataStateChange(dataState: DataState<*>?) {
-        dataState?.let {
-            GlobalScope.launch(Dispatchers.Main) {
-                displayProgressBar(it.loading.isLoading)
+    override fun onResponseReceived(
+        response: Response,
+        stateMessageCallback: StateMessageCallback
+    ) {
 
-                it.error?.let { errorEvent ->
-                    handleStateError(errorEvent)
-                }
+        when (response.uiComponentType) {
 
-                it.data?.let {
-                    it.response?.let { responseEvent ->
-                        handleStateResponse(responseEvent)
-                    }
+            is UIComponentType.AreYouSureDialog -> {
+
+                response.message?.let {
+                    areYouSureDialog(
+                        message = it,
+                        callback = response.uiComponentType.callback,
+                        stateMessageCallback = stateMessageCallback
+                    )
                 }
+            }
+
+            is UIComponentType.Toast -> {
+                response.message?.let {
+                    displayToast(
+                        message = it,
+                        stateMessageCallback = stateMessageCallback
+                    )
+                }
+            }
+
+            is UIComponentType.Dialog -> {
+                displayDialog(
+                    response = response,
+                    stateMessageCallback = stateMessageCallback
+                )
+            }
+
+            is UIComponentType.None -> {
+                // This would be a good place to send to your Error Reporting
+                // software of choice (ex: Firebase crash reporting)
+                Log.i(TAG, "onResponseReceived: ${response.message}")
+                stateMessageCallback.removeMessageFromStack()
             }
         }
     }
 
-    abstract fun displayProgressBar(bool: Boolean)
+    private fun displayDialog(
+        response: Response,
+        stateMessageCallback: StateMessageCallback
+    ) {
+        Log.d(TAG, "displayDialog: ")
+        response.message?.let { message ->
 
-    private fun handleStateResponse(event: Event<Response>) {
-        event.getContentIfNotHandled()?.let {
+            dialogInView = when (response.messageType) {
 
-            when (it.responseType) {
-                is ResponseType.Toast -> {
-                    it.message?.let { message ->
-                        displayToast(message)
-                    }
+                is MessageType.Error -> {
+                    displayErrorDialog(
+                        message = message,
+                        stateMessageCallback = stateMessageCallback
+                    )
                 }
 
-                is ResponseType.Dialog -> {
-                    it.message?.let { message ->
-                        displaySuccessDialog(message)
-                    }
+                is MessageType.Success -> {
+                    displaySuccessDialog(
+                        message = message,
+                        stateMessageCallback = stateMessageCallback
+                    )
                 }
 
-                is ResponseType.None -> {
-                    Log.i(TAG, "handleStateResponse: ${it.message}")
-                }
-            }
-
-        }
-    }
-
-    private fun handleStateError(event: Event<StateError>) {
-        event.getContentIfNotHandled()?.let {
-            when (it.response.responseType) {
-                is ResponseType.Toast -> {
-                    it.response.message?.let { message ->
-                        displayToast(message)
-                    }
+                is MessageType.Info -> {
+                    displayInfoDialog(
+                        message = message,
+                        stateMessageCallback = stateMessageCallback
+                    )
                 }
 
-                is ResponseType.Dialog -> {
-                    it.response.message?.let { message ->
-                        displayErrorDialog(message)
-                    }
-                }
-
-                is ResponseType.None -> {
-                    Log.i(TAG, "handleStateError: ${it.response.message}")
+                else -> {
+                    // do nothing
+                    stateMessageCallback.removeMessageFromStack()
+                    null
                 }
             }
-        }
+        } ?: stateMessageCallback.removeMessageFromStack()
     }
+
+    abstract override fun displayProgressBar(isLoading: Boolean)
 
     override fun hideSoftKeyboard() {
         if (currentFocus != null) {
@@ -106,30 +130,6 @@ abstract class BaseActivity : AppCompatActivity(), DataStateChangeListener,
             ) as InputMethodManager
             inputMethodManager
                 .hideSoftInputFromWindow(currentFocus!!.windowToken, 0)
-        }
-    }
-
-    override fun onUIMessageReceived(uiMessage: UIMessage) {
-        when (uiMessage.uiMessageType) {
-
-            is UIMessageType.AreYouSureDialog -> {
-                areYouSureDialog(
-                    uiMessage.message,
-                    uiMessage.uiMessageType.callback
-                )
-            }
-
-            is UIMessageType.Toast -> {
-                displayToast(uiMessage.message)
-            }
-
-            is UIMessageType.Dialog -> {
-                displayInfoDialog(uiMessage.message)
-            }
-
-            is UIMessageType.None -> {
-                Log.i(TAG, "onUIMessageReceived: ${uiMessage.message}")
-            }
         }
     }
 
@@ -147,6 +147,7 @@ abstract class BaseActivity : AppCompatActivity(), DataStateChangeListener,
             != PackageManager.PERMISSION_GRANTED
         ) {
 
+
             ActivityCompat.requestPermissions(
                 this,
                 arrayOf(
@@ -163,4 +164,94 @@ abstract class BaseActivity : AppCompatActivity(), DataStateChangeListener,
         }
     }
 
+    override fun onPause() {
+        super.onPause()
+        if (dialogInView != null) {
+            (dialogInView as MaterialDialog).dismiss()
+            dialogInView = null
+        }
+    }
+
+    private fun displaySuccessDialog(
+        message: String?,
+        stateMessageCallback: StateMessageCallback
+    ): MaterialDialog {
+        return MaterialDialog(this)
+            .show {
+                title(R.string.text_success)
+                message(text = message)
+                positiveButton(R.string.text_ok) {
+                    stateMessageCallback.removeMessageFromStack()
+                    dismiss()
+                }
+                onDismiss {
+                    dialogInView = null
+                }
+                cancelable(false)
+            }
+    }
+
+    private fun displayErrorDialog(
+        message: String?,
+        stateMessageCallback: StateMessageCallback
+    ): MaterialDialog {
+        return MaterialDialog(this)
+            .show {
+                title(R.string.text_error)
+                message(text = message)
+                positiveButton(R.string.text_ok) {
+                    stateMessageCallback.removeMessageFromStack()
+                    dismiss()
+                }
+                onDismiss {
+                    dialogInView = null
+                }
+                cancelable(false)
+            }
+    }
+
+    private fun displayInfoDialog(
+        message: String?,
+        stateMessageCallback: StateMessageCallback
+    ): MaterialDialog {
+        return MaterialDialog(this)
+            .show {
+                title(R.string.text_info)
+                message(text = message)
+                positiveButton(R.string.text_ok) {
+                    stateMessageCallback.removeMessageFromStack()
+                    dismiss()
+                }
+                onDismiss {
+                    dialogInView = null
+                }
+                cancelable(false)
+            }
+    }
+
+    private fun areYouSureDialog(
+        message: String,
+        callback: AreYouSureCallback,
+        stateMessageCallback: StateMessageCallback
+    ): MaterialDialog {
+        return MaterialDialog(this)
+            .show {
+                title(R.string.are_you_sure)
+                message(text = message)
+                negativeButton(R.string.text_cancel) {
+                    callback.cancel()
+                    stateMessageCallback.removeMessageFromStack()
+                    dismiss()
+                }
+                positiveButton(R.string.text_yes) {
+                    callback.proceed()
+                    stateMessageCallback.removeMessageFromStack()
+                    dismiss()
+                }
+                onDismiss {
+                    dialogInView = null
+                }
+                cancelable(false)
+            }
+    }
 }

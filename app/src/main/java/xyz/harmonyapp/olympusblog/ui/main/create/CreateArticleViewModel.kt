@@ -1,36 +1,42 @@
 package xyz.harmonyapp.olympusblog.ui.main.create
 
 import android.net.Uri
-import androidx.lifecycle.LiveData
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import okhttp3.MediaType
-import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import xyz.harmonyapp.olympusblog.di.main.MainScope
-import xyz.harmonyapp.olympusblog.repository.main.CreateArticleRepository
+import xyz.harmonyapp.olympusblog.repository.main.CreateArticleRepositoryImpl
 import xyz.harmonyapp.olympusblog.session.SessionManager
 import xyz.harmonyapp.olympusblog.ui.BaseViewModel
-import xyz.harmonyapp.olympusblog.ui.DataState
-import xyz.harmonyapp.olympusblog.ui.Loading
-import xyz.harmonyapp.olympusblog.ui.main.create.state.CreateArticleStateEvent
 import xyz.harmonyapp.olympusblog.ui.main.create.state.CreateArticleStateEvent.CreateNewArticleEvent
-import xyz.harmonyapp.olympusblog.ui.main.create.state.CreateArticleStateEvent.None
 import xyz.harmonyapp.olympusblog.ui.main.create.state.CreateArticleViewState
 import xyz.harmonyapp.olympusblog.ui.main.create.state.CreateArticleViewState.NewArticleFields
+import xyz.harmonyapp.olympusblog.utils.*
+import xyz.harmonyapp.olympusblog.utils.ErrorHandling.Companion.INVALID_STATE_EVENT
 import javax.inject.Inject
 
 @MainScope
 class CreateArticleViewModel
 @Inject
 constructor(
-    val createArticleRepository: CreateArticleRepository,
+    val createArticleRepository: CreateArticleRepositoryImpl,
     val sessionManager: SessionManager
-) : BaseViewModel<CreateArticleStateEvent, CreateArticleViewState>() {
+) : BaseViewModel<CreateArticleViewState>() {
 
-    override fun handleStateEvent(
-        stateEvent: CreateArticleStateEvent
-    ): LiveData<DataState<CreateArticleViewState>> {
+    override fun handleNewData(data: CreateArticleViewState) {
 
-        when (stateEvent) {
+        setNewArticleFields(
+            data.articleFields.newArticleTitle,
+            data.articleFields.newArticleDescription,
+            data.articleFields.newArticleBody,
+            data.articleFields.newArticleTags,
+            data.articleFields.newImageUri
+        )
+    }
+
+    override fun setStateEvent(stateEvent: StateEvent) {
+        val job: Flow<DataState<CreateArticleViewState>> = when (stateEvent) {
 
             is CreateNewArticleEvent -> {
                 val title = RequestBody.create(MediaType.parse("text/plain"), stateEvent.title)
@@ -39,28 +45,32 @@ constructor(
                 val body = RequestBody.create(MediaType.parse("text/plain"), stateEvent.body)
                 val tags = stateEvent.tags.split(",")
 
-                return createArticleRepository.createArticle(
+                createArticleRepository.createNewArticle(
                     title,
                     description,
                     body,
                     tags,
-                    stateEvent.image
+                    stateEvent.image,
+                    stateEvent = stateEvent
                 )
             }
 
-            is None -> {
-                return object : LiveData<DataState<CreateArticleViewState>>() {
-                    override fun onActive() {
-                        super.onActive()
-                        value = DataState(
-                            null,
-                            Loading(false),
-                            null
+            else -> {
+                flow {
+                    emit(
+                        DataState.error<CreateArticleViewState>(
+                            response = Response(
+                                message = INVALID_STATE_EVENT,
+                                uiComponentType = UIComponentType.None(),
+                                messageType = MessageType.Error()
+                            ),
+                            stateEvent = stateEvent
                         )
-                    }
+                    )
                 }
             }
         }
+        launchJob(stateEvent, job)
     }
 
     override fun initNewViewState(): CreateArticleViewState {
@@ -89,16 +99,6 @@ constructor(
         uri?.let { newArticleFields.newImageUri = it }
         update.articleFields = newArticleFields
         setViewState(update)
-    }
-
-
-    fun cancelActiveJobs() {
-        createArticleRepository.cancelActiveJobs()
-        handlePendingData()
-    }
-
-    fun handlePendingData() {
-        setStateEvent(None())
     }
 
     override fun onCleared() {

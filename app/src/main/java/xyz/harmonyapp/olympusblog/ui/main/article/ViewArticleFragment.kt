@@ -5,7 +5,6 @@ import android.util.Log
 import android.view.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
@@ -17,14 +16,12 @@ import xyz.harmonyapp.olympusblog.databinding.FragmentViewArticleBinding
 import xyz.harmonyapp.olympusblog.di.main.MainScope
 import xyz.harmonyapp.olympusblog.models.Article
 import xyz.harmonyapp.olympusblog.ui.AreYouSureCallback
-import xyz.harmonyapp.olympusblog.ui.UIMessage
-import xyz.harmonyapp.olympusblog.ui.UIMessageType
 import xyz.harmonyapp.olympusblog.ui.main.article.state.ARTICLE_VIEW_STATE_BUNDLE_KEY
 import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleStateEvent.CheckAuthorOfArticle
 import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleStateEvent.DeleteArticleEvent
 import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleViewState
 import xyz.harmonyapp.olympusblog.ui.main.article.viewmodel.*
-import xyz.harmonyapp.olympusblog.utils.DateUtils
+import xyz.harmonyapp.olympusblog.utils.*
 import xyz.harmonyapp.olympusblog.utils.SuccessHandling.Companion.SUCCESS_ARTICLE_DELETED
 import javax.inject.Inject
 
@@ -35,18 +32,13 @@ constructor(
     private val viewModelFactory: ViewModelProvider.Factory,
     private val requestManager: RequestManager,
     private val markwon: Markwon
-) : BaseArticleFragment() {
+) : BaseArticleFragment(viewModelFactory) {
 
     private var _binding: FragmentViewArticleBinding? = null
     private val binding get() = _binding!!
 
-    val viewModel: ArticleViewModel by viewModels {
-        viewModelFactory
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        cancelActiveJobs()
         // Restore state after process death
         savedInstanceState?.let { inState ->
             (inState[ARTICLE_VIEW_STATE_BUNDLE_KEY] as ArticleViewState?)?.let { viewState ->
@@ -68,10 +60,6 @@ constructor(
         super.onSaveInstanceState(outState)
     }
 
-    override fun cancelActiveJobs() {
-        viewModel.cancelActiveJobs()
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -87,37 +75,41 @@ constructor(
         subscribeObservers()
         checkIsAuthor()
         (activity as AppCompatActivity).supportActionBar?.setDisplayShowTitleEnabled(true)
-        stateChangeListener.expandAppBar()
+        uiCommunicationListener.expandAppBar()
     }
 
     fun subscribeObservers() {
-        viewModel.dataState.observe(viewLifecycleOwner, { dataState ->
-            if (dataState != null) {
-                stateChangeListener.onDataStateChange(dataState)
 
-                dataState.data?.let { data ->
-                    data.data?.getContentIfNotHandled()?.let { viewState ->
-                        viewModel.setIsAuthorOfArticle(
-                            viewState.viewArticleFields.isAuthorOfArticle
-                        )
-                    }
-                    data.response?.peekContent()?.let { response ->
-                        if (response.message.equals(SUCCESS_ARTICLE_DELETED)) {
-                            viewModel.removeDeletedArticle()
-                            findNavController().popBackStack()
-                        }
-                    }
-                }
-            }
-        })
-
-        viewModel.viewState.observe(viewLifecycleOwner, { viewState ->
+        viewModel.viewState.observe(viewLifecycleOwner, Observer { viewState ->
             viewState.viewArticleFields.article?.let { article ->
                 setArticleProperties(article)
             }
 
-            if (viewState.viewArticleFields.isAuthorOfArticle) {
+            if (viewState.viewArticleFields.isAuthorOfArticle == true) {
                 adaptViewToAuthorMode()
+            }
+        })
+
+        viewModel.numActiveJobs.observe(viewLifecycleOwner, Observer { jobCounter ->
+            uiCommunicationListener.displayProgressBar(viewModel.areAnyJobsActive())
+        })
+
+        viewModel.stateMessage.observe(viewLifecycleOwner, Observer { stateMessage ->
+
+            if (stateMessage?.response?.message.equals(SUCCESS_ARTICLE_DELETED)) {
+                viewModel.removeDeletedArticle()
+                findNavController().popBackStack()
+            }
+
+            stateMessage?.let {
+                uiCommunicationListener.onResponseReceived(
+                    response = it.response,
+                    stateMessageCallback = object : StateMessageCallback {
+                        override fun removeMessageFromStack() {
+                            viewModel.clearStateMessage()
+                        }
+                    }
+                )
             }
         })
     }
@@ -213,11 +205,17 @@ constructor(
             }
 
         }
-        uiCommunicationListener.onUIMessageReceived(
-            UIMessage(
-                getString(R.string.are_you_sure_delete),
-                UIMessageType.AreYouSureDialog(callback)
-            )
+        uiCommunicationListener.onResponseReceived(
+            response = Response(
+                message = getString(R.string.are_you_sure_delete),
+                uiComponentType = UIComponentType.AreYouSureDialog(callback),
+                messageType = MessageType.Info()
+            ),
+            stateMessageCallback = object : StateMessageCallback {
+                override fun removeMessageFromStack() {
+                    viewModel.clearStateMessage()
+                }
+            }
         )
     }
 
