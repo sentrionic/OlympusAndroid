@@ -37,7 +37,7 @@ class ArticleListAdapter(
         "",
     )
 
-    val DIFF_CALLBACK = object : DiffUtil.ItemCallback<Article>() {
+    private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<Article>() {
 
         override fun areItemsTheSame(oldItem: Article, newItem: Article): Boolean {
             return oldItem.id == newItem.id

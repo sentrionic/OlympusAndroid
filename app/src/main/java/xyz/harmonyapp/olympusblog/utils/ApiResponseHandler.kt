@@ -12,7 +12,6 @@ abstract class ApiResponseHandler<ViewState, Data>(
         return when (response) {
 
             is ApiResult.GenericError -> {
-                Log.d("Appdebug", response.errorMessage)
                 DataState.error(
                     response = Response(
                         message = "${stateEvent.errorInfo()}\n\nReason: ${response.errorMessage}",

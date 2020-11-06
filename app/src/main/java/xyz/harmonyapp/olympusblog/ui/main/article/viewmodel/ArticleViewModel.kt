@@ -23,7 +23,7 @@ class ArticleViewModel
 constructor(
     private val sessionManager: SessionManager,
     private val articleRepository: ArticleRepositoryImpl,
-    private val sharedPreferences: SharedPreferences,
+    sharedPreferences: SharedPreferences,
     private val editor: SharedPreferences.Editor
 ) : BaseViewModel<ArticleViewState>() {
 

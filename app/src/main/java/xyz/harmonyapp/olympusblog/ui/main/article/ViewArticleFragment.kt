@@ -29,7 +29,7 @@ import javax.inject.Inject
 class ViewArticleFragment
 @Inject
 constructor(
-    private val viewModelFactory: ViewModelProvider.Factory,
+    viewModelFactory: ViewModelProvider.Factory,
     private val requestManager: RequestManager,
     private val markwon: Markwon
 ) : BaseArticleFragment(viewModelFactory) {

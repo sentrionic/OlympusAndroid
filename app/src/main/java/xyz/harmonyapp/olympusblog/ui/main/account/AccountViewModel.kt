@@ -21,7 +21,7 @@ class AccountViewModel
 @Inject
 constructor(
     val sessionManager: SessionManager,
-    val accountRepository: AccountRepositoryImpl
+    private val accountRepository: AccountRepositoryImpl
 ) : BaseViewModel<AccountViewState>() {
 
     override fun handleNewData(data: AccountViewState) {

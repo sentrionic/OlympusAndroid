@@ -123,8 +123,8 @@ class MainActivity : BaseActivity(),
         setSupportActionBar(binding.toolBar)
     }
 
-    override fun displayProgressBar(bool: Boolean) {
-        if (bool) {
+    override fun displayProgressBar(isLoading: Boolean) {
+        if (isLoading) {
             binding.progressBar.visibility = View.VISIBLE
         } else {
             binding.progressBar.visibility = View.GONE
