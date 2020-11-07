@@ -38,6 +38,9 @@ data class Article(
     @ColumnInfo(name = "favorited")
     var favorited: Boolean,
 
+    @ColumnInfo(name = "bookmarked")
+    var bookmarked: Boolean,
+
     @ColumnInfo(name = "username")
     var username: String,
 

@@ -11,5 +11,7 @@ class SuccessHandling {
         const val SUCCESS_ARTICLE_CREATED = "Successfully created your article"
         const val SUCCESS_ARTICLE_UPDATED = "Successfully updated your article"
         const val SUCCESS_ARTICLE_DELETED = "deleted"
+        const val SUCCESS_TOGGLE_FAVORITE = "toggled favorite"
+        const val SUCCESS_TOGGLE_BOOKMARK = "toggled bookmark"
     }
 }

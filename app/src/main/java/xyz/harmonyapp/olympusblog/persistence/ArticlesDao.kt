@@ -96,4 +96,27 @@ interface ArticlesDao {
         description: String,
         image: String
     )
+
+    @Query(
+        """
+        UPDATE articles SET favoritesCount = :favoritesCount, favorited = :favorited 
+        WHERE id = :id
+        """
+    )
+    suspend fun updateFavorite(
+        id: Int,
+        favoritesCount: Int,
+        favorited: Boolean,
+    )
+
+    @Query(
+        """
+        UPDATE articles SET bookmarked = :bookmarked 
+        WHERE id = :id
+        """
+    )
+    suspend fun updateBookmark(
+        id: Int,
+        bookmarked: Boolean,
+    )
 }

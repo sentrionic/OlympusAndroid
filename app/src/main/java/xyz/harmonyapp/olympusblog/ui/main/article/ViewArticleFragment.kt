@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
@@ -17,8 +18,7 @@ import xyz.harmonyapp.olympusblog.di.main.MainScope
 import xyz.harmonyapp.olympusblog.models.Article
 import xyz.harmonyapp.olympusblog.ui.AreYouSureCallback
 import xyz.harmonyapp.olympusblog.ui.main.article.state.ARTICLE_VIEW_STATE_BUNDLE_KEY
-import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleStateEvent.CheckAuthorOfArticle
-import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleStateEvent.DeleteArticleEvent
+import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleStateEvent.*
 import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleViewState
 import xyz.harmonyapp.olympusblog.ui.main.article.viewmodel.*
 import xyz.harmonyapp.olympusblog.utils.*
@@ -139,11 +139,17 @@ constructor(
             markwon.setMarkdown(binding.articleBody, article.body)
 
             if (article.favorited) {
-                articleFavorited.visibility = View.VISIBLE
-                articleNotFavorited.visibility = View.GONE
+                articleFavorited.setImageDrawable(ContextCompat.getDrawable(binding.root.context, R.drawable.ic_baseline_star_24))
             } else {
-                articleFavorited.visibility = View.GONE
-                articleNotFavorited.visibility = View.VISIBLE
+                articleFavorited.setImageDrawable(ContextCompat.getDrawable(binding.root.context, R.drawable.ic_outline_star_outline_24))
+            }
+
+            articleFavorited.setOnClickListener {
+                viewModel.setStateEvent(ToggleFavoriteEvent())
+            }
+
+            articleBookmark.setOnClickListener {
+                viewModel.setStateEvent(ToggleBookmarkEvent())
             }
         }
 

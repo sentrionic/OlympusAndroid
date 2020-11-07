@@ -46,5 +46,13 @@ interface ArticleRepository {
         stateEvent: StateEvent
     ): Flow<DataState<ArticleViewState>>
 
+    fun toggleFavorite(
+        article: Article,
+        stateEvent: StateEvent
+    ): Flow<DataState<ArticleViewState>>
 
+    fun toggleBookmark(
+        article: Article,
+        stateEvent: StateEvent
+    ): Flow<DataState<ArticleViewState>>
 }

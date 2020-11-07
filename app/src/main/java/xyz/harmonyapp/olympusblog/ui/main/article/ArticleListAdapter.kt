@@ -4,13 +4,17 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContentProviderCompat.requireContext
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.*
 import com.bumptech.glide.RequestManager
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
+import xyz.harmonyapp.olympusblog.R
 import xyz.harmonyapp.olympusblog.databinding.LayoutArticleListItemBinding
 import xyz.harmonyapp.olympusblog.databinding.LayoutNoMoreResultsBinding
 import xyz.harmonyapp.olympusblog.models.Article
+import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleStateEvent
 import xyz.harmonyapp.olympusblog.utils.DateUtils
 import xyz.harmonyapp.olympusblog.utils.GenericViewHolder
 
@@ -32,6 +36,7 @@ class ArticleListAdapter(
         "",
         "",
         0,
+        false,
         false,
         "",
         "",
@@ -176,11 +181,23 @@ class ArticleListAdapter(
             articleAuthor.text = item.username
 
             if (item.favorited) {
-                articleFavorited.visibility = View.VISIBLE
-                articleNotFavorited.visibility = View.GONE
+                articleFavorited.setImageDrawable(ContextCompat.getDrawable(binding.root.context, R.drawable.ic_baseline_star_24))
             } else {
-                articleFavorited.visibility = View.GONE
-                articleNotFavorited.visibility = View.VISIBLE
+                articleFavorited.setImageDrawable(ContextCompat.getDrawable(binding.root.context, R.drawable.ic_outline_star_outline_24))
+            }
+
+            if (item.bookmarked) {
+                articleBookmark.setImageDrawable(ContextCompat.getDrawable(binding.root.context, R.drawable.ic_baseline_bookmark_24))
+            } else {
+                articleBookmark.setImageDrawable(ContextCompat.getDrawable(binding.root.context, R.drawable.ic_baseline_bookmark_border_24))
+            }
+
+            articleFavorited.setOnClickListener {
+                interaction?.toggleFavorite(adapterPosition, item)
+            }
+
+            articleBookmark.setOnClickListener {
+                interaction?.toggleBookmark(adapterPosition, item)
             }
 
             requestManager
@@ -193,5 +210,7 @@ class ArticleListAdapter(
     interface Interaction {
         fun onItemSelected(position: Int, item: Article)
         fun restoreListPosition()
+        fun toggleFavorite(position: Int, item: Article)
+        fun toggleBookmark(position: Int, item: Article)
     }
 }

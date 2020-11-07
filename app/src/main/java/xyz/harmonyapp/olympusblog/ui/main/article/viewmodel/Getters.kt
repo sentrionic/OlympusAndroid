@@ -42,7 +42,7 @@ fun ArticleViewModel.getArticle(): Article {
 }
 
 fun getDummyArticle(): Article {
-    return Article(-1, "", "", "", "", "", "", 0, false, "", "")
+    return Article(-1, "", "", "", "", "", "", 0, false, false,"", "")
 }
 
 fun ArticleViewModel.getUpdatedArticleUri(): Uri? {

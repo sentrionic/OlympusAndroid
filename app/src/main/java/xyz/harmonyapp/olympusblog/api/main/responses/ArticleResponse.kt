@@ -32,6 +32,9 @@ data class ArticleResponse(
     @Json(name = "favorited")
     var favorited: Boolean,
 
+    @Json(name = "bookmarked")
+    var bookmarked: Boolean,
+
     @Json(name = "author")
     var author: AuthorResponse,
 
@@ -50,6 +53,7 @@ data class ArticleResponse(
             createdAt = createdAt,
             slug = slug,
             favorited = favorited,
+            bookmarked = bookmarked,
             favoritesCount = favoritesCount,
             username = author.username,
             profileImage = author.image

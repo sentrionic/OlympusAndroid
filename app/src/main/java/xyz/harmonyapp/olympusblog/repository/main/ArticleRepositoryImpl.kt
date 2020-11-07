@@ -27,6 +27,8 @@ import xyz.harmonyapp.olympusblog.utils.*
 import xyz.harmonyapp.olympusblog.utils.ErrorHandling.Companion.ERROR_UNKNOWN
 import xyz.harmonyapp.olympusblog.utils.SuccessHandling.Companion.SUCCESS_ARTICLE_DELETED
 import xyz.harmonyapp.olympusblog.utils.SuccessHandling.Companion.SUCCESS_ARTICLE_UPDATED
+import xyz.harmonyapp.olympusblog.utils.SuccessHandling.Companion.SUCCESS_TOGGLE_BOOKMARK
+import xyz.harmonyapp.olympusblog.utils.SuccessHandling.Companion.SUCCESS_TOGGLE_FAVORITE
 import javax.inject.Inject
 
 @MainScope
@@ -275,6 +277,109 @@ constructor(
                         response = Response(
                             message = SUCCESS_ARTICLE_UPDATED,
                             uiComponentType = UIComponentType.Toast(),
+                            messageType = MessageType.Success()
+                        ),
+                        data = ArticleViewState(
+                            viewArticleFields = ViewArticleFields(
+                                article = updatedArticle
+                            )
+                        ),
+                        stateEvent = stateEvent
+                    )
+
+                }
+
+            }.getResult()
+        )
+    }
+
+    override fun toggleFavorite(
+        article: Article,
+        stateEvent: StateEvent
+    ) = flow {
+
+        val apiResult = safeApiCall(IO) {
+            when {
+                article.favorited -> {
+                    mainService.unfavoriteArticle(
+                        slug = article.slug,
+                    )
+                }
+                else -> {
+                    mainService.favoriteArticle(slug = article.slug)
+                }
+            }
+        }
+        emit(
+            object : ApiResponseHandler<ArticleViewState, ArticleResponse>(
+                response = apiResult,
+                stateEvent = stateEvent
+            ) {
+                override suspend fun handleSuccess(resultObj: ArticleResponse): DataState<ArticleViewState> {
+
+                    val updatedArticle = resultObj.toArticle()
+
+                    articlesDao.updateFavorite(
+                        id = updatedArticle.id,
+                        favoritesCount = updatedArticle.favoritesCount,
+                        favorited = updatedArticle.favorited
+                    )
+
+                    return DataState.data(
+                        response = Response(
+                            message = SUCCESS_TOGGLE_FAVORITE,
+                            uiComponentType = UIComponentType.None(),
+                            messageType = MessageType.Success()
+                        ),
+                        data = ArticleViewState(
+                            viewArticleFields = ViewArticleFields(
+                                article = updatedArticle
+                            )
+                        ),
+                        stateEvent = stateEvent
+                    )
+
+                }
+
+            }.getResult()
+        )
+    }
+
+    override fun toggleBookmark(
+        article: Article,
+        stateEvent: StateEvent
+    ) = flow {
+
+        val apiResult = safeApiCall(IO) {
+            when {
+                article.bookmarked -> {
+                    mainService.unbookmarkArticle(
+                        slug = article.slug,
+                    )
+                }
+                else -> {
+                    mainService.bookmarkArticle(slug = article.slug)
+                }
+            }
+        }
+        emit(
+            object : ApiResponseHandler<ArticleViewState, ArticleResponse>(
+                response = apiResult,
+                stateEvent = stateEvent
+            ) {
+                override suspend fun handleSuccess(resultObj: ArticleResponse): DataState<ArticleViewState> {
+
+                    val updatedArticle = resultObj.toArticle()
+
+                    articlesDao.updateBookmark(
+                        id = updatedArticle.id,
+                        bookmarked = updatedArticle.bookmarked,
+                    )
+
+                    return DataState.data(
+                        response = Response(
+                            message = SUCCESS_TOGGLE_BOOKMARK,
+                            uiComponentType = UIComponentType.None(),
                             messageType = MessageType.Success()
                         ),
                         data = ArticleViewState(

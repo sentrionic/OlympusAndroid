@@ -140,6 +140,20 @@ constructor(
                     )
                 }
 
+                is ToggleFavoriteEvent -> {
+                    articleRepository.toggleFavorite(
+                        stateEvent = stateEvent,
+                        article = getArticle()
+                    )
+                }
+
+                is ToggleBookmarkEvent -> {
+                    articleRepository.toggleBookmark(
+                        stateEvent = stateEvent,
+                        article = getArticle()
+                    )
+                }
+
                 else -> {
                     flow {
                         emit(

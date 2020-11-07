@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "5af9bcc83956c75db023c579ee17320c",
+    "identityHash": "10480e15de216dd9597d3bbdf4e824f1",
     "entities": [
       {
         "tableName": "auth_token",
@@ -88,7 +88,7 @@
       },
       {
         "tableName": "articles",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `slug` TEXT NOT NULL, `body` TEXT NOT NULL, `image` TEXT NOT NULL, `createdAt` TEXT NOT NULL, `favoritesCount` INTEGER NOT NULL, `favorited` INTEGER NOT NULL, `username` TEXT NOT NULL, `profileImage` TEXT NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `slug` TEXT NOT NULL, `body` TEXT NOT NULL, `image` TEXT NOT NULL, `createdAt` TEXT NOT NULL, `favoritesCount` INTEGER NOT NULL, `favorited` INTEGER NOT NULL, `bookmarked` INTEGER NOT NULL, `username` TEXT NOT NULL, `profileImage` TEXT NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -145,6 +145,12 @@
             "notNull": true
           },
           {
+            "fieldPath": "bookmarked",
+            "columnName": "bookmarked",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
             "fieldPath": "username",
             "columnName": "username",
             "affinity": "TEXT",
@@ -170,7 +176,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '5af9bcc83956c75db023c579ee17320c')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '10480e15de216dd9597d3bbdf4e824f1')"
     ]
   }
 }

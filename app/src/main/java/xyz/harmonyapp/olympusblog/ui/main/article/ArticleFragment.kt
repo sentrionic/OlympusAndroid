@@ -31,9 +31,12 @@ import xyz.harmonyapp.olympusblog.models.Article
 import xyz.harmonyapp.olympusblog.persistence.ArticleQueryUtils.Companion.ARTICLES_ASC
 import xyz.harmonyapp.olympusblog.persistence.ArticleQueryUtils.Companion.ARTICLES_DESC
 import xyz.harmonyapp.olympusblog.ui.main.article.state.ARTICLE_VIEW_STATE_BUNDLE_KEY
+import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleStateEvent.ToggleBookmarkEvent
+import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleStateEvent.ToggleFavoriteEvent
 import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleViewState
 import xyz.harmonyapp.olympusblog.ui.main.article.viewmodel.*
 import xyz.harmonyapp.olympusblog.utils.StateMessageCallback
+import xyz.harmonyapp.olympusblog.utils.SuccessHandling
 import xyz.harmonyapp.olympusblog.utils.TopSpacingItemDecoration
 import javax.inject.Inject
 
@@ -118,11 +121,17 @@ constructor(
             }
         })
 
-        viewModel.numActiveJobs.observe(viewLifecycleOwner, Observer { jobCounter ->
+        viewModel.numActiveJobs.observe(viewLifecycleOwner, Observer {
             uiCommunicationListener.displayProgressBar(viewModel.areAnyJobsActive())
         })
 
         viewModel.stateMessage.observe(viewLifecycleOwner, Observer { stateMessage ->
+
+            if (stateMessage?.response?.message.equals(SuccessHandling.SUCCESS_TOGGLE_FAVORITE)
+                || stateMessage?.response?.message.equals(SuccessHandling.SUCCESS_TOGGLE_BOOKMARK)
+            ) {
+                viewModel.updateListItem()
+            }
 
             stateMessage?.let {
                 uiCommunicationListener.onResponseReceived(
@@ -268,6 +277,16 @@ constructor(
     override fun onItemSelected(position: Int, item: Article) {
         viewModel.setArticle(item)
         findNavController().navigate(R.id.action_articleFragment_to_viewArticleFragment)
+    }
+
+    override fun toggleFavorite(position: Int, item: Article) {
+        viewModel.setArticle(item)
+        viewModel.setStateEvent(ToggleFavoriteEvent())
+    }
+
+    override fun toggleBookmark(position: Int, item: Article) {
+        viewModel.setArticle(item)
+        viewModel.setStateEvent(ToggleBookmarkEvent())
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {

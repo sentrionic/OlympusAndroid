@@ -51,6 +51,27 @@ sealed class ArticleStateEvent : StateEvent {
 
     }
 
+    class ToggleFavoriteEvent: ArticleStateEvent() {
+        override fun errorInfo(): String {
+            return "Error changing favorites status."
+        }
+
+        override fun toString(): String {
+            return "ToggleFavoriteEvent"
+        }
+    }
+
+    class ToggleBookmarkEvent: ArticleStateEvent() {
+        override fun errorInfo(): String {
+            return "Error changing bookmark status."
+        }
+
+        override fun toString(): String {
+            return "ToggleBookmarkEvent"
+        }
+    }
+
+
     class None : ArticleStateEvent() {
         override fun errorInfo(): String {
             return "None."
