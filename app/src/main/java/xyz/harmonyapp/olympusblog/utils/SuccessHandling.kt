@@ -13,5 +13,7 @@ class SuccessHandling {
         const val SUCCESS_ARTICLE_DELETED = "deleted"
         const val SUCCESS_TOGGLE_FAVORITE = "toggled favorite"
         const val SUCCESS_TOGGLE_BOOKMARK = "toggled bookmark"
+
+        const val SUCCESS_COMMENT_DELETED = "comment deleted"
     }
 }

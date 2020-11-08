@@ -3,6 +3,7 @@ package xyz.harmonyapp.olympusblog.ui.main.article.state
 import android.net.Uri
 import android.os.Parcelable
 import kotlinx.android.parcel.Parcelize
+import xyz.harmonyapp.olympusblog.api.main.responses.CommentResponse
 import xyz.harmonyapp.olympusblog.models.Article
 
 const val ARTICLE_VIEW_STATE_BUNDLE_KEY =
@@ -14,8 +15,9 @@ data class ArticleViewState(
     var articleFields: ArticleFields = ArticleFields(),
     var viewArticleFields: ViewArticleFields = ViewArticleFields(),
     var updatedArticleFields: UpdatedArticleFields = UpdatedArticleFields(),
+    var viewCommentsFields: ViewCommentsFields = ViewCommentsFields(),
 
-    ) : Parcelable {
+) : Parcelable {
 
     @Parcelize
     data class ArticleFields(
@@ -30,7 +32,14 @@ data class ArticleViewState(
     @Parcelize
     data class ViewArticleFields(
         var article: Article? = null,
-        var isAuthorOfArticle: Boolean? = null
+        var isAuthorOfArticle: Boolean? = null,
+        var commentList: List<CommentResponse>? = null
+    ) : Parcelable
+
+    @Parcelize
+    data class ViewCommentsFields(
+        var comment: CommentResponse? = null,
+        var userId: Int? = null,
     ) : Parcelable
 
     @Parcelize

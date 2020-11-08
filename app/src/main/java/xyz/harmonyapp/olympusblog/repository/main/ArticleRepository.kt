@@ -55,4 +55,10 @@ interface ArticleRepository {
         article: Article,
         stateEvent: StateEvent
     ): Flow<DataState<ArticleViewState>>
+
+    fun getArticleComments(slug: String, stateEvent: StateEvent): Flow<DataState<ArticleViewState>>
+
+    fun postComment(body: String, slug: String, stateEvent: StateEvent): Flow<DataState<ArticleViewState>>
+
+    fun deleteComment(slug: String, id: Int, stateEvent: StateEvent): Flow<DataState<ArticleViewState>>
 }

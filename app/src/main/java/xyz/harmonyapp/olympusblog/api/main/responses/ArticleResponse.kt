@@ -2,6 +2,7 @@ package xyz.harmonyapp.olympusblog.api.main.responses
 
 import com.squareup.moshi.Json
 import xyz.harmonyapp.olympusblog.models.Article
+import xyz.harmonyapp.olympusblog.models.Author
 
 data class ArticleResponse(
 
@@ -36,9 +37,9 @@ data class ArticleResponse(
     var bookmarked: Boolean,
 
     @Json(name = "author")
-    var author: AuthorResponse,
+    var author: Author,
 
-    ) {
+) {
     override fun toString(): String {
         return "Article(id=$id, title='$title', description='$description', slug='$slug', body='$body', image='$image', createdAt=$createdAt, favoritesCount=$favoritesCount, favorited=$favorited, author=$author)"
     }
@@ -56,7 +57,8 @@ data class ArticleResponse(
             bookmarked = bookmarked,
             favoritesCount = favoritesCount,
             username = author.username,
-            profileImage = author.image
+            profileImage = author.image,
+            authorId = author.id
         )
     }
 }

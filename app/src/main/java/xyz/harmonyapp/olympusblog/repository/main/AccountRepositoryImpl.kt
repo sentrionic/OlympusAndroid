@@ -157,4 +157,29 @@ constructor(
         )
     }
 
+    override fun logout(
+        stateEvent: StateEvent
+    ) = flow {
+        val apiResult = safeApiCall(IO) {
+            mainService.logout()
+        }
+        emit(
+            object : ApiResponseHandler<AccountViewState, Boolean>(
+                response = apiResult,
+                stateEvent = stateEvent
+            ) {
+                override suspend fun handleSuccess(
+                    resultObj: Boolean
+                ): DataState<AccountViewState> {
+
+                    return DataState.data(
+                        data = null,
+                        response = null,
+                        stateEvent = stateEvent
+                    )
+                }
+            }.getResult()
+        )
+    }
+
 }

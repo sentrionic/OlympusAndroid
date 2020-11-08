@@ -1,7 +1,9 @@
 package xyz.harmonyapp.olympusblog.ui.main.article.viewmodel
 
 import android.net.Uri
+import xyz.harmonyapp.olympusblog.api.main.responses.CommentResponse
 import xyz.harmonyapp.olympusblog.models.Article
+import xyz.harmonyapp.olympusblog.models.Author
 import xyz.harmonyapp.olympusblog.persistence.ArticleQueryUtils.Companion.ARTICLES_DESC
 
 fun ArticleViewModel.getSearchQuery(): String {
@@ -42,7 +44,21 @@ fun ArticleViewModel.getArticle(): Article {
 }
 
 fun getDummyArticle(): Article {
-    return Article(-1, "", "", "", "", "", "", 0, false, false,"", "")
+    return Article(
+        -1,
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        0,
+        false,
+        false,
+        "",
+        "",
+        -1
+    )
 }
 
 fun ArticleViewModel.getUpdatedArticleUri(): Uri? {
@@ -52,4 +68,20 @@ fun ArticleViewModel.getUpdatedArticleUri(): Uri? {
         }
     }
     return null
+}
+
+fun ArticleViewModel.getComment(): CommentResponse {
+    getCurrentViewStateOrNew().let {
+        return it.viewCommentsFields.comment?.let {
+            return it
+        } ?: getDummyComment()
+    }
+}
+
+fun getDummyAuthor(): Author {
+    return Author(-1, "", "", "", false, 0, 0)
+}
+
+fun getDummyComment(): CommentResponse {
+    return CommentResponse(-1, "", "", getDummyAuthor())
 }

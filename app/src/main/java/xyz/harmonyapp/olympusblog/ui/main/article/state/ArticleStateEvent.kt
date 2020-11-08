@@ -1,6 +1,7 @@
 package xyz.harmonyapp.olympusblog.ui.main.article.state
 
 import okhttp3.MultipartBody
+import xyz.harmonyapp.olympusblog.api.main.responses.CommentResponse
 import xyz.harmonyapp.olympusblog.utils.StateEvent
 
 sealed class ArticleStateEvent : StateEvent {
@@ -68,6 +69,36 @@ sealed class ArticleStateEvent : StateEvent {
 
         override fun toString(): String {
             return "ToggleBookmarkEvent"
+        }
+    }
+
+    class GetArticleCommentsEvent: ArticleStateEvent() {
+        override fun errorInfo(): String {
+            return "Error getting article comments."
+        }
+
+        override fun toString(): String {
+            return "GetArticleComments"
+        }
+    }
+
+    data class PostCommentEvent(val body: String): ArticleStateEvent() {
+        override fun errorInfo(): String {
+            return "Error posting article comment."
+        }
+
+        override fun toString(): String {
+            return "PostCommentEvent"
+        }
+    }
+
+    class DeleteCommentEvent: ArticleStateEvent() {
+        override fun errorInfo(): String {
+            return "Error deleting article comment."
+        }
+
+        override fun toString(): String {
+            return "DeleteCommentEvent"
         }
     }
 

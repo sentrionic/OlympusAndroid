@@ -40,6 +40,7 @@ class ArticleListAdapter(
         false,
         "",
         "",
+        -1
     )
 
     private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<Article>() {

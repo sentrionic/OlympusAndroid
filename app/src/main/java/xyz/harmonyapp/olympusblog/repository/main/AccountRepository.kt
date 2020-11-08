@@ -31,4 +31,8 @@ interface AccountRepository {
         confirmNewPassword: String,
         stateEvent: StateEvent
     ): Flow<DataState<AccountViewState>>
+
+    fun logout(
+        stateEvent: StateEvent
+    ): Flow<DataState<AccountViewState>>
 }

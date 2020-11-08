@@ -65,6 +65,10 @@ constructor(
                     )
                 }
 
+                is LogoutEvent -> {
+                    accountRepository.logout(stateEvent)
+                }
+
                 else -> {
                     flow {
                         emit(
@@ -107,6 +111,7 @@ constructor(
     }
 
     fun logout() {
+        setStateEvent(LogoutEvent())
         sessionManager.logout()
     }
 

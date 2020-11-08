@@ -151,6 +151,10 @@ constructor(
             articleBookmark.setOnClickListener {
                 viewModel.setStateEvent(ToggleBookmarkEvent())
             }
+
+            articleComments.setOnClickListener {
+                findNavController().navigate(R.id.action_viewArticleFragment_to_commentFragment)
+            }
         }
 
         (activity as AppCompatActivity).supportActionBar?.title = article.title

@@ -44,6 +44,16 @@ sealed class AccountStateEvent : StateEvent {
         }
     }
 
+    class LogoutEvent : AccountStateEvent() {
+        override fun errorInfo(): String {
+            return "Error LogoutEvent."
+        }
+
+        override fun toString(): String {
+            return "LogoutEvent"
+        }
+    }
+
     class None : AccountStateEvent() {
         override fun errorInfo(): String {
             return "None"

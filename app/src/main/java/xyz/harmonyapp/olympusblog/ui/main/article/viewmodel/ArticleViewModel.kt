@@ -59,6 +59,10 @@ constructor(
             viewArticleFields.isAuthorOfArticle?.let { isAuthor ->
                 setIsAuthorOfArticle(isAuthor)
             }
+
+            viewArticleFields.commentList?.let { comments ->
+                setCommentsList(comments)
+            }
         }
 
         data.updatedArticleFields.let { updatedArticleFields ->
@@ -77,6 +81,12 @@ constructor(
 
             updatedArticleFields.updatedArticleBody?.let { body ->
                 setUpdatedBody(body)
+            }
+        }
+
+        data.viewCommentsFields.let { viewCommentsFields ->
+            viewCommentsFields.comment?.let { comment ->
+                addComment(comment)
             }
         }
     }
@@ -99,7 +109,7 @@ constructor(
 
                 is CheckAuthorOfArticle -> {
                     articleRepository.isAuthorOfArticle(
-                        id = sessionManager.cachedToken.value?.account_id ?: -1,
+                        id = getCurrentUserId(),
                         slug = getSlug(),
                         stateEvent = stateEvent
                     )
@@ -154,6 +164,29 @@ constructor(
                     )
                 }
 
+                is GetArticleCommentsEvent -> {
+                    articleRepository.getArticleComments(
+                        stateEvent = stateEvent,
+                        slug = getSlug()
+                    )
+                }
+
+                is PostCommentEvent -> {
+                    articleRepository.postComment(
+                        stateEvent = stateEvent,
+                        slug = getSlug(),
+                        body = stateEvent.body
+                    )
+                }
+
+                is DeleteCommentEvent -> {
+                    articleRepository.deleteComment(
+                        stateEvent = stateEvent,
+                        slug = getSlug(),
+                        id = getComment().id
+                    )
+                }
+
                 else -> {
                     flow {
                         emit(
@@ -185,6 +218,10 @@ constructor(
     fun saveFilterOptions(order: String) {
         editor.putString(ARTICLE_ORDER, order)
         editor.apply()
+    }
+
+    fun getCurrentUserId(): Int {
+        return sessionManager.cachedToken.value?.account_id?: -1
     }
 
 }

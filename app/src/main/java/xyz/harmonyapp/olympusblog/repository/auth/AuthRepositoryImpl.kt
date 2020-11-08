@@ -225,7 +225,7 @@ constructor(
                         return DataState.error(
                             response = Response(
                                 RESPONSE_CHECK_PREVIOUS_AUTH_USER_DONE,
-                                UIComponentType.Dialog(),
+                                UIComponentType.None(),
                                 MessageType.Error()
                             ),
                             stateEvent = stateEvent

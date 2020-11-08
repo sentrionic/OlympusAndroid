@@ -10,6 +10,7 @@ import android.view.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.RequestManager
 import com.theartofdev.edmodo.cropper.CropImage
 import com.theartofdev.edmodo.cropper.CropImageView
@@ -125,6 +126,7 @@ constructor(
 
                 if (stateMessage.response.message.equals(SUCCESS_ARTICLE_UPDATED)) {
                     viewModel.updateListItem()
+                    findNavController().popBackStack()
                 }
 
                 uiCommunicationListener.onResponseReceived(

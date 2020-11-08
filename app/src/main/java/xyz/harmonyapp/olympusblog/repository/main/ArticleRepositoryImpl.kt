@@ -9,8 +9,10 @@ import kotlinx.coroutines.withContext
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import xyz.harmonyapp.olympusblog.api.main.MainService
+import xyz.harmonyapp.olympusblog.api.main.dto.CommentDTO
 import xyz.harmonyapp.olympusblog.api.main.responses.ArticleListSearchResponse
 import xyz.harmonyapp.olympusblog.api.main.responses.ArticleResponse
+import xyz.harmonyapp.olympusblog.api.main.responses.CommentResponse
 import xyz.harmonyapp.olympusblog.di.main.MainScope
 import xyz.harmonyapp.olympusblog.models.Article
 import xyz.harmonyapp.olympusblog.persistence.ArticlesDao
@@ -20,13 +22,14 @@ import xyz.harmonyapp.olympusblog.repository.buildError
 import xyz.harmonyapp.olympusblog.repository.safeApiCall
 import xyz.harmonyapp.olympusblog.repository.safeCacheCall
 import xyz.harmonyapp.olympusblog.session.SessionManager
+import xyz.harmonyapp.olympusblog.ui.main.account.state.AccountViewState
 import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleViewState
-import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleViewState.ArticleFields
-import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleViewState.ViewArticleFields
+import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleViewState.*
 import xyz.harmonyapp.olympusblog.utils.*
 import xyz.harmonyapp.olympusblog.utils.ErrorHandling.Companion.ERROR_UNKNOWN
 import xyz.harmonyapp.olympusblog.utils.SuccessHandling.Companion.SUCCESS_ARTICLE_DELETED
 import xyz.harmonyapp.olympusblog.utils.SuccessHandling.Companion.SUCCESS_ARTICLE_UPDATED
+import xyz.harmonyapp.olympusblog.utils.SuccessHandling.Companion.SUCCESS_COMMENT_DELETED
 import xyz.harmonyapp.olympusblog.utils.SuccessHandling.Companion.SUCCESS_TOGGLE_BOOKMARK
 import xyz.harmonyapp.olympusblog.utils.SuccessHandling.Companion.SUCCESS_TOGGLE_FAVORITE
 import javax.inject.Inject
@@ -48,7 +51,7 @@ constructor(
         page: Int,
         stateEvent: StateEvent
     ): Flow<DataState<ArticleViewState>> {
-        var hasMore: Boolean = false
+        var hasMore = false
         return object :
             NetworkBoundResource<ArticleListSearchResponse, List<Article>, ArticleViewState>(
                 dispatcher = IO,
@@ -69,15 +72,15 @@ constructor(
                 }
             ) {
             override suspend fun updateCache(networkObject: ArticleListSearchResponse) {
-                val articleList = networkObject.toList()
                 hasMore = networkObject.hasMore
                 withContext(IO) {
-                    for (article in articleList) {
+                    for (article in networkObject.articles) {
                         try {
                             // Launch each insert as a separate job to be executed in parallel
                             launch {
                                 Log.d(TAG, "updateLocalDb: inserting article: ${article}")
-                                articlesDao.insert(article)
+                                articlesDao.insert(article.toArticle())
+                                articlesDao.insertAuthor(article.author)
                             }
                         } catch (e: Exception) {
                             Log.e(
@@ -85,8 +88,6 @@ constructor(
                                 "updateLocalDb: error updating cache data on article post with slug: ${article.slug}. " +
                                         "${e.message}"
                             )
-                            // Could send an error report here or something but I don't think you should throw an error to the UI
-                            // Since there could be many blog posts being inserted/updated.
                         }
                     }
                 }
@@ -392,6 +393,101 @@ constructor(
 
                 }
 
+            }.getResult()
+        )
+    }
+
+    override fun getArticleComments(
+        slug: String,
+        stateEvent: StateEvent
+    ) = flow {
+        val apiResult = safeApiCall(IO) {
+            mainService.getArticleComments(slug)
+        }
+        emit(
+            object : ApiResponseHandler<ArticleViewState, List<CommentResponse>>(
+                response = apiResult,
+                stateEvent = stateEvent
+            ) {
+                override suspend fun handleSuccess(
+                    resultObj: List<CommentResponse>
+                ): DataState<ArticleViewState> {
+
+                    return DataState.data(
+                        response = null,
+                        data = ArticleViewState(
+                            viewArticleFields = ViewArticleFields(
+                                commentList = resultObj
+                            )
+                        ),
+                        stateEvent = stateEvent
+                    )
+                }
+            }.getResult()
+        )
+    }
+
+    override fun postComment(
+        body: String,
+        slug: String,
+        stateEvent: StateEvent
+    ) = flow {
+        val apiResult = safeApiCall(IO) {
+            mainService.createComment(slug = slug, body = CommentDTO(body))
+        }
+        emit(
+            object : ApiResponseHandler<ArticleViewState, CommentResponse>(
+                response = apiResult,
+                stateEvent = stateEvent
+            ) {
+                override suspend fun handleSuccess(
+                    resultObj: CommentResponse
+                ): DataState<ArticleViewState> {
+
+                    return DataState.data(
+                        data = ArticleViewState(
+                            viewCommentsFields = ViewCommentsFields(
+                                comment = resultObj
+                            )
+                        ),
+                        response = Response(
+                            message = SUCCESS_COMMENT_DELETED,
+                            uiComponentType = UIComponentType.None(),
+                            messageType = MessageType.Success()
+                        ),
+                        stateEvent = stateEvent
+                    )
+                }
+            }.getResult()
+        )
+    }
+
+    override fun deleteComment(
+        slug: String,
+        id: Int,
+        stateEvent: StateEvent
+    ) = flow {
+        val apiResult = safeApiCall(IO) {
+            mainService.deleteComment(slug, id)
+        }
+        emit(
+            object : ApiResponseHandler<ArticleViewState, CommentResponse>(
+                response = apiResult,
+                stateEvent = stateEvent
+            ) {
+                override suspend fun handleSuccess(
+                    resultObj: CommentResponse
+                ): DataState<ArticleViewState> {
+
+                    return DataState.data(
+                        response = Response(
+                            message = SUCCESS_COMMENT_DELETED,
+                            uiComponentType = UIComponentType.None(),
+                            messageType = MessageType.Success()
+                        ),
+                        stateEvent = stateEvent
+                    )
+                }
             }.getResult()
         )
     }

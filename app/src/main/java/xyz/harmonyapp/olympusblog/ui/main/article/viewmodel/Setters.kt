@@ -2,6 +2,7 @@ package xyz.harmonyapp.olympusblog.ui.main.article.viewmodel
 
 import android.net.Uri
 import android.os.Parcelable
+import xyz.harmonyapp.olympusblog.api.main.responses.CommentResponse
 import xyz.harmonyapp.olympusblog.models.Article
 
 fun ArticleViewModel.setQuery(query: String) {
@@ -25,6 +26,12 @@ fun ArticleViewModel.setArticle(article: Article) {
 fun ArticleViewModel.setIsAuthorOfArticle(isAuthorOfArticle: Boolean) {
     val update = getCurrentViewStateOrNew()
     update.viewArticleFields.isAuthorOfArticle = isAuthorOfArticle
+    setViewState(update)
+}
+
+fun ArticleViewModel.setCommentsList(comments: List<CommentResponse>) {
+    val update = getCurrentViewStateOrNew()
+    update.viewArticleFields.commentList = comments
     setViewState(update)
 }
 
@@ -128,5 +135,35 @@ fun ArticleViewModel.setUpdatedBody(body: String) {
     updatedArticleFields.updatedArticleBody = body
     update.updatedArticleFields = updatedArticleFields
     setViewState(update)
+}
+
+fun ArticleViewModel.setComment(comment: CommentResponse) {
+    val update = getCurrentViewStateOrNew()
+    update.viewCommentsFields.comment = comment
+    setViewState(update)
+}
+
+fun ArticleViewModel.addComment(comment: CommentResponse) {
+    val update = getCurrentViewStateOrNew()
+    val list = update.viewArticleFields.commentList?.toMutableList()
+    if (list != null) {
+        list.add(comment)
+        setCommentsList(list)
+    }
+}
+
+
+fun ArticleViewModel.removeDeletedComment() {
+    val update = getCurrentViewStateOrNew()
+    val list = update.viewArticleFields.commentList?.toMutableList()
+    if (list != null) {
+        for (i in 0 until list.size) {
+            if (list[i] == getComment()) {
+                list.remove(getComment())
+                break
+            }
+        }
+        setCommentsList(list)
+    }
 }
 

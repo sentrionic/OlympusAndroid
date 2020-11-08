@@ -19,6 +19,7 @@ import xyz.harmonyapp.olympusblog.ui.BaseActivity
 import xyz.harmonyapp.olympusblog.ui.auth.AuthActivity
 import xyz.harmonyapp.olympusblog.ui.main.account.ChangePasswordFragment
 import xyz.harmonyapp.olympusblog.ui.main.account.UpdateAccountFragment
+import xyz.harmonyapp.olympusblog.ui.main.article.CommentFragment
 import xyz.harmonyapp.olympusblog.ui.main.article.UpdateArticleFragment
 import xyz.harmonyapp.olympusblog.ui.main.article.ViewArticleFragment
 import xyz.harmonyapp.olympusblog.utils.BOTTOM_NAV_BACKSTACK_KEY
@@ -149,6 +150,10 @@ class MainActivity : BaseActivity(),
         }
 
         is UpdateAccountFragment -> {
+            navController.navigate(R.id.action_updateAccountFragment_to_home)
+        }
+
+        is CommentFragment -> {
             navController.navigate(R.id.action_updateAccountFragment_to_home)
         }
 

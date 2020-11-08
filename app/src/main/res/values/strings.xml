@@ -78,6 +78,7 @@
     <string name="AccountFragmentFactory">AccountFragmentFactory</string>
     <string name="BlogFragmentFactory">BlogFragmentFactory</string>
     <string name="CreateBlogFragmentFactory">CreateBlogFragmentFactory</string>
+    <string name="submit">Submit</string>
 </resources>
 
 
