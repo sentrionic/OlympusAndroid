@@ -31,8 +31,8 @@ import xyz.harmonyapp.olympusblog.models.Article
 import xyz.harmonyapp.olympusblog.persistence.ArticleQueryUtils.Companion.ARTICLES_ASC
 import xyz.harmonyapp.olympusblog.persistence.ArticleQueryUtils.Companion.ARTICLES_DESC
 import xyz.harmonyapp.olympusblog.ui.main.article.state.ARTICLE_VIEW_STATE_BUNDLE_KEY
-import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleStateEvent.ToggleBookmarkEvent
-import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleStateEvent.ToggleFavoriteEvent
+import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleStateEvent
+import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleStateEvent.*
 import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleViewState
 import xyz.harmonyapp.olympusblog.ui.main.article.viewmodel.*
 import xyz.harmonyapp.olympusblog.utils.StateMessageCallback
@@ -60,10 +60,15 @@ constructor(
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Restore state after process death
-        savedInstanceState?.let { inState ->
-            (inState[ARTICLE_VIEW_STATE_BUNDLE_KEY] as ArticleViewState?)?.let { viewState ->
-                viewModel.setViewState(viewState)
+        if (savedInstanceState != null) {
+            savedInstanceState.let { inState ->
+                Log.d(TAG, "onCreate: savedInstanceState")
+                (inState[ARTICLE_VIEW_STATE_BUNDLE_KEY] as ArticleViewState?)?.let { viewState ->
+                    viewModel.setViewState(viewState)
+                }
             }
+        } else {
+            viewModel.setStateEvent(CleanDBEvent())
         }
     }
 
@@ -117,7 +122,6 @@ constructor(
                         isQueryExhausted = viewState.articleFields.isQueryExhausted ?: true
                     )
                 }
-
             }
         })
 
@@ -193,7 +197,10 @@ constructor(
                 || actionId == EditorInfo.IME_ACTION_SEARCH
             ) {
                 val searchQuery = v.text.toString()
-                Log.e(TAG, "SearchView: (keyboard or arrow) executing search...: ${searchQuery}")
+                Log.e(
+                    TAG,
+                    "SearchView: (keyboard or arrow) executing search...: ${searchQuery}"
+                )
                 viewModel.setQuery(searchQuery).let {
                     onArticleSearchOrFilter()
                 }

@@ -1,7 +1,7 @@
 package xyz.harmonyapp.olympusblog.api.main.responses
 
 import com.squareup.moshi.Json
-import xyz.harmonyapp.olympusblog.models.Article
+import xyz.harmonyapp.olympusblog.models.ArticleEntity
 import xyz.harmonyapp.olympusblog.models.Author
 
 data class ArticleResponse(
@@ -44,8 +44,8 @@ data class ArticleResponse(
         return "Article(id=$id, title='$title', description='$description', slug='$slug', body='$body', image='$image', createdAt=$createdAt, favoritesCount=$favoritesCount, favorited=$favorited, author=$author)"
     }
 
-    fun toArticle(): Article {
-        return Article(
+    fun toArticle(): ArticleEntity {
+        return ArticleEntity(
             id = id,
             title = title,
             description = description,
@@ -56,8 +56,6 @@ data class ArticleResponse(
             favorited = favorited,
             bookmarked = bookmarked,
             favoritesCount = favoritesCount,
-            username = author.username,
-            profileImage = author.image,
             authorId = author.id
         )
     }

@@ -5,6 +5,7 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import xyz.harmonyapp.olympusblog.di.main.MainScope
 import xyz.harmonyapp.olympusblog.models.Article
+import xyz.harmonyapp.olympusblog.models.ArticleEntity
 import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleViewState
 import xyz.harmonyapp.olympusblog.utils.DataState
 import xyz.harmonyapp.olympusblog.utils.StateEvent
@@ -18,6 +19,8 @@ interface ArticleRepository {
         page: Int,
         stateEvent: StateEvent
     ): Flow<DataState<ArticleViewState>>
+
+    fun dropDatabase(stateEvent: StateEvent): Flow<DataState<ArticleViewState>>
 
     fun restoreArticleListFromCache(
         query: String,

@@ -16,6 +16,16 @@ sealed class ArticleStateEvent : StateEvent {
         }
     }
 
+    class CleanDBEvent : ArticleStateEvent() {
+        override fun errorInfo(): String {
+            return "Error deleting database."
+        }
+
+        override fun toString(): String {
+            return "CleanDBEvent"
+        }
+    }
+
     class CheckAuthorOfArticle : ArticleStateEvent() {
         override fun errorInfo(): String {
             return "Error checking if you are the author of this article post."

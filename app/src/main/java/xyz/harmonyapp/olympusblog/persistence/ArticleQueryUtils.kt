@@ -1,6 +1,6 @@
 package xyz.harmonyapp.olympusblog.persistence
 
-import xyz.harmonyapp.olympusblog.models.Article
+import xyz.harmonyapp.olympusblog.models.ArticleAuthor
 
 class ArticleQueryUtils {
 
@@ -19,7 +19,7 @@ suspend fun ArticlesDao.returnOrderedQuery(
     query: String,
     order: String,
     page: Int
-): List<Article> {
+): List<ArticleAuthor> {
 
     when {
 

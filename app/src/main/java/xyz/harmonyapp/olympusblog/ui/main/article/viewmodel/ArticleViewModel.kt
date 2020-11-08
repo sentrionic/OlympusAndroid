@@ -107,6 +107,10 @@ constructor(
                     )
                 }
 
+                is CleanDBEvent -> {
+                    articleRepository.dropDatabase(stateEvent)
+                }
+
                 is CheckAuthorOfArticle -> {
                     articleRepository.isAuthorOfArticle(
                         id = getCurrentUserId(),

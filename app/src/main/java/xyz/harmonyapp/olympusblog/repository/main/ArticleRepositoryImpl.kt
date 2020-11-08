@@ -15,6 +15,7 @@ import xyz.harmonyapp.olympusblog.api.main.responses.ArticleResponse
 import xyz.harmonyapp.olympusblog.api.main.responses.CommentResponse
 import xyz.harmonyapp.olympusblog.di.main.MainScope
 import xyz.harmonyapp.olympusblog.models.Article
+import xyz.harmonyapp.olympusblog.models.ArticleAuthor
 import xyz.harmonyapp.olympusblog.persistence.ArticlesDao
 import xyz.harmonyapp.olympusblog.persistence.returnOrderedQuery
 import xyz.harmonyapp.olympusblog.repository.NetworkBoundResource
@@ -22,7 +23,6 @@ import xyz.harmonyapp.olympusblog.repository.buildError
 import xyz.harmonyapp.olympusblog.repository.safeApiCall
 import xyz.harmonyapp.olympusblog.repository.safeCacheCall
 import xyz.harmonyapp.olympusblog.session.SessionManager
-import xyz.harmonyapp.olympusblog.ui.main.account.state.AccountViewState
 import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleViewState
 import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleViewState.*
 import xyz.harmonyapp.olympusblog.utils.*
@@ -53,7 +53,7 @@ constructor(
     ): Flow<DataState<ArticleViewState>> {
         var hasMore = false
         return object :
-            NetworkBoundResource<ArticleListSearchResponse, List<Article>, ArticleViewState>(
+            NetworkBoundResource<ArticleListSearchResponse, List<ArticleAuthor>, ArticleViewState>(
                 dispatcher = IO,
                 stateEvent = stateEvent,
                 apiCall = {
@@ -93,10 +93,18 @@ constructor(
                 }
             }
 
-            override fun handleCacheSuccess(resultObj: List<Article>): DataState<ArticleViewState> {
+            override fun handleCacheSuccess(resultObj: List<ArticleAuthor>): DataState<ArticleViewState> {
+
+                val articleList: ArrayList<Article> = ArrayList()
+                for (articleResponse in resultObj) {
+                    articleList.add(
+                        articleResponse.toArticle()
+                    )
+                }
+
                 val viewState = ArticleViewState(
                     articleFields = ArticleFields(
-                        articleList = resultObj,
+                        articleList = articleList,
                         isQueryExhausted = !hasMore
                     )
                 )
@@ -125,16 +133,22 @@ constructor(
             )
         }
         emit(
-            object : CacheResponseHandler<ArticleViewState, List<Article>>(
+            object : CacheResponseHandler<ArticleViewState, List<ArticleAuthor>>(
                 response = cacheResult,
                 stateEvent = stateEvent
             ) {
                 override suspend fun handleSuccess(
-                    resultObj: List<Article>
+                    resultObj: List<ArticleAuthor>
                 ): DataState<ArticleViewState> {
+                    val articleList: ArrayList<Article> = ArrayList()
+                    for (articleResponse in resultObj) {
+                        articleList.add(
+                            articleResponse.toArticle()
+                        )
+                    }
                     val viewState = ArticleViewState(
                         articleFields = ArticleFields(
-                            articleList = resultObj
+                            articleList = articleList
                         )
                     )
                     return DataState.data(
@@ -148,57 +162,104 @@ constructor(
         )
     }
 
+    override fun dropDatabase(stateEvent: StateEvent) = flow {
+        val cacheResult = safeCacheCall(IO) {
+            articlesDao.dropArticlesTable()
+            articlesDao.dropAuthorsTable()
+        }
+        emit(
+            object : CacheResponseHandler<ArticleViewState, Unit>(
+                response = cacheResult,
+                stateEvent = stateEvent
+            ) {
+                override suspend fun handleSuccess(
+                    resultObj: Unit
+                ): DataState<ArticleViewState> {
+                    return DataState.data(
+                        response = null,
+                        data = null,
+                        stateEvent = stateEvent
+                    )
+                }
+
+            }.getResult()
+        )
+    }
 
     override fun isAuthorOfArticle(
         id: Int,
         slug: String,
         stateEvent: StateEvent
-    ) = flow {
-        val apiResult = safeApiCall(IO) {
-            mainService.getArticle(
-                slug
-            )
-        }
-        emit(
-            object : ApiResponseHandler<ArticleViewState, ArticleResponse>(
-                response = apiResult,
-                stateEvent = stateEvent
-            ) {
-                override suspend fun handleSuccess(resultObj: ArticleResponse): DataState<ArticleViewState> {
-                    val viewState = ArticleViewState(
-                        viewArticleFields = ViewArticleFields(
-                            isAuthorOfArticle = false
-                        )
+    ): Flow<DataState<ArticleViewState>> {
+        return object :
+            NetworkBoundResource<ArticleResponse, ArticleAuthor, ArticleViewState>(
+                dispatcher = IO,
+                stateEvent = stateEvent,
+                apiCall = {
+                    mainService.getArticle(
+                        slug
                     )
-                    return when {
-                        resultObj.author.id != id -> {
-                            DataState.data(
-                                response = null,
-                                data = viewState,
-                                stateEvent = stateEvent
-                            )
+                },
+                cacheCall = {
+                    articlesDao.getArticleBySlug(
+                        slug = slug
+                    )
+                }
+            ) {
+            override suspend fun updateCache(networkObject: ArticleResponse) {
+                withContext(IO) {
+                    try {
+                        // Launch each insert as a separate job to be executed in parallel
+                        launch {
+                            Log.d(TAG, "updateLocalDb: inserting article: $networkObject")
+                            articlesDao.insertAuthor(networkObject.author)
                         }
-
-                        resultObj.author.id == id -> {
-                            viewState.viewArticleFields.isAuthorOfArticle = true
-                            DataState.data(
-                                response = null,
-                                data = viewState,
-                                stateEvent = stateEvent
-                            )
-                        }
-
-                        else -> {
-                            buildError(
-                                ERROR_UNKNOWN,
-                                UIComponentType.None(),
-                                stateEvent
-                            )
-                        }
+                    } catch (e: Exception) {
+                        Log.e(
+                            TAG,
+                            "updateLocalDb: error updating cache data on article post with slug: ${slug}. " +
+                                    "${e.message}"
+                        )
                     }
                 }
-            }.getResult()
-        )
+            }
+
+            override fun handleCacheSuccess(resultObj: ArticleAuthor): DataState<ArticleViewState> {
+
+                val viewState = ArticleViewState(
+                    viewArticleFields = ViewArticleFields(
+                        isAuthorOfArticle = false
+                    )
+                )
+                return when {
+                    resultObj.author.id != id -> {
+                        DataState.data(
+                            response = null,
+                            data = viewState,
+                            stateEvent = stateEvent
+                        )
+                    }
+
+                    resultObj.author.id == id -> {
+                        viewState.viewArticleFields.isAuthorOfArticle = true
+                        DataState.data(
+                            response = null,
+                            data = viewState,
+                            stateEvent = stateEvent
+                        )
+                    }
+
+                    else -> {
+                        buildError(
+                            ERROR_UNKNOWN,
+                            UIComponentType.None(),
+                            stateEvent
+                        )
+                    }
+                }
+            }
+
+        }.result
     }
 
     override fun deleteArticle(
@@ -218,7 +279,7 @@ constructor(
                 override suspend fun handleSuccess(resultObj: ArticleResponse): DataState<ArticleViewState> {
 
                     if (resultObj.id == article.id) {
-                        articlesDao.deleteArticle(article)
+                        articlesDao.deleteArticle(resultObj.toArticle())
                         return DataState.data(
                             response = Response(
                                 message = SUCCESS_ARTICLE_DELETED,
@@ -264,15 +325,15 @@ constructor(
             ) {
                 override suspend fun handleSuccess(resultObj: ArticleResponse): DataState<ArticleViewState> {
 
-                    val updatedArticle = resultObj.toArticle()
-
                     articlesDao.updateArticle(
-                        id = updatedArticle.id,
-                        title = updatedArticle.title,
-                        description = updatedArticle.description,
-                        body = updatedArticle.body,
-                        image = updatedArticle.image
+                        id = resultObj.id,
+                        title = resultObj.title,
+                        description = resultObj.description,
+                        body = resultObj.body,
+                        image = resultObj.image
                     )
+
+                    val updatedArticle = articlesDao.getArticleBySlug(resultObj.slug)
 
                     return DataState.data(
                         response = Response(
@@ -282,7 +343,7 @@ constructor(
                         ),
                         data = ArticleViewState(
                             viewArticleFields = ViewArticleFields(
-                                article = updatedArticle
+                                article = updatedArticle.toArticle()
                             )
                         ),
                         stateEvent = stateEvent
@@ -318,13 +379,13 @@ constructor(
             ) {
                 override suspend fun handleSuccess(resultObj: ArticleResponse): DataState<ArticleViewState> {
 
-                    val updatedArticle = resultObj.toArticle()
-
                     articlesDao.updateFavorite(
-                        id = updatedArticle.id,
-                        favoritesCount = updatedArticle.favoritesCount,
-                        favorited = updatedArticle.favorited
+                        id = resultObj.id,
+                        favoritesCount = resultObj.favoritesCount,
+                        favorited = resultObj.favorited
                     )
+
+                    val updatedArticle = articlesDao.getArticleBySlug(resultObj.slug)
 
                     return DataState.data(
                         response = Response(
@@ -334,7 +395,7 @@ constructor(
                         ),
                         data = ArticleViewState(
                             viewArticleFields = ViewArticleFields(
-                                article = updatedArticle
+                                article = updatedArticle.toArticle()
                             )
                         ),
                         stateEvent = stateEvent
@@ -370,12 +431,12 @@ constructor(
             ) {
                 override suspend fun handleSuccess(resultObj: ArticleResponse): DataState<ArticleViewState> {
 
-                    val updatedArticle = resultObj.toArticle()
-
                     articlesDao.updateBookmark(
-                        id = updatedArticle.id,
-                        bookmarked = updatedArticle.bookmarked,
+                        id = resultObj.id,
+                        bookmarked = resultObj.bookmarked,
                     )
+
+                    val updatedArticle = articlesDao.getArticleBySlug(resultObj.slug)
 
                     return DataState.data(
                         response = Response(
@@ -385,7 +446,7 @@ constructor(
                         ),
                         data = ArticleViewState(
                             viewArticleFields = ViewArticleFields(
-                                article = updatedArticle
+                                article = updatedArticle.toArticle()
                             )
                         ),
                         stateEvent = stateEvent

@@ -5,6 +5,7 @@ import android.os.Parcelable
 import kotlinx.android.parcel.Parcelize
 import xyz.harmonyapp.olympusblog.api.main.responses.CommentResponse
 import xyz.harmonyapp.olympusblog.models.Article
+import xyz.harmonyapp.olympusblog.models.ArticleAuthor
 
 const val ARTICLE_VIEW_STATE_BUNDLE_KEY =
     "xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleViewState"

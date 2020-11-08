@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "9a89d0da2163f91da19b1281f81606c5",
+    "identityHash": "62765502953f10f5103469c5c4674273",
     "entities": [
       {
         "tableName": "auth_token",
@@ -88,7 +88,7 @@
       },
       {
         "tableName": "articles",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `slug` TEXT NOT NULL, `body` TEXT NOT NULL, `image` TEXT NOT NULL, `createdAt` TEXT NOT NULL, `favoritesCount` INTEGER NOT NULL, `favorited` INTEGER NOT NULL, `bookmarked` INTEGER NOT NULL, `username` TEXT NOT NULL, `profileImage` TEXT NOT NULL, `authorId` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `slug` TEXT NOT NULL, `body` TEXT NOT NULL, `image` TEXT NOT NULL, `createdAt` TEXT NOT NULL, `favoritesCount` INTEGER NOT NULL, `favorited` INTEGER NOT NULL, `bookmarked` INTEGER NOT NULL, `authorId` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -148,18 +148,6 @@
             "fieldPath": "bookmarked",
             "columnName": "bookmarked",
             "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "username",
-            "columnName": "username",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "profileImage",
-            "columnName": "profileImage",
-            "affinity": "TEXT",
             "notNull": true
           },
           {
@@ -238,7 +226,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '9a89d0da2163f91da19b1281f81606c5')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '62765502953f10f5103469c5c4674273')"
     ]
   }
 }

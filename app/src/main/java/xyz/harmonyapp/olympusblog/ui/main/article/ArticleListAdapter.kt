@@ -2,9 +2,7 @@ package xyz.harmonyapp.olympusblog.ui.main.article
 
 import android.util.Log
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.*
 import com.bumptech.glide.RequestManager
@@ -14,7 +12,8 @@ import xyz.harmonyapp.olympusblog.R
 import xyz.harmonyapp.olympusblog.databinding.LayoutArticleListItemBinding
 import xyz.harmonyapp.olympusblog.databinding.LayoutNoMoreResultsBinding
 import xyz.harmonyapp.olympusblog.models.Article
-import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleStateEvent
+import xyz.harmonyapp.olympusblog.models.ArticleAuthor
+import xyz.harmonyapp.olympusblog.ui.main.article.viewmodel.getDummyAuthor
 import xyz.harmonyapp.olympusblog.utils.DateUtils
 import xyz.harmonyapp.olympusblog.utils.GenericViewHolder
 
@@ -38,9 +37,7 @@ class ArticleListAdapter(
         0,
         false,
         false,
-        "",
-        "",
-        -1
+        getDummyAuthor()
     )
 
     private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<Article>() {
@@ -179,18 +176,38 @@ class ArticleListAdapter(
             articleDescription.text = item.description
             articleCreatedAt.text = DateUtils.formatDate(item.createdAt)
             articleFavoritesCount.text = item.favoritesCount.toString()
-            articleAuthor.text = item.username
+            articleAuthor.text = item.author.username
 
             if (item.favorited) {
-                articleFavorited.setImageDrawable(ContextCompat.getDrawable(binding.root.context, R.drawable.ic_baseline_star_24))
+                articleFavorited.setImageDrawable(
+                    ContextCompat.getDrawable(
+                        binding.root.context,
+                        R.drawable.ic_baseline_star_24
+                    )
+                )
             } else {
-                articleFavorited.setImageDrawable(ContextCompat.getDrawable(binding.root.context, R.drawable.ic_outline_star_outline_24))
+                articleFavorited.setImageDrawable(
+                    ContextCompat.getDrawable(
+                        binding.root.context,
+                        R.drawable.ic_outline_star_outline_24
+                    )
+                )
             }
 
             if (item.bookmarked) {
-                articleBookmark.setImageDrawable(ContextCompat.getDrawable(binding.root.context, R.drawable.ic_baseline_bookmark_24))
+                articleBookmark.setImageDrawable(
+                    ContextCompat.getDrawable(
+                        binding.root.context,
+                        R.drawable.ic_baseline_bookmark_24
+                    )
+                )
             } else {
-                articleBookmark.setImageDrawable(ContextCompat.getDrawable(binding.root.context, R.drawable.ic_baseline_bookmark_border_24))
+                articleBookmark.setImageDrawable(
+                    ContextCompat.getDrawable(
+                        binding.root.context,
+                        R.drawable.ic_baseline_bookmark_border_24
+                    )
+                )
             }
 
             articleFavorited.setOnClickListener {
@@ -202,7 +219,7 @@ class ArticleListAdapter(
             }
 
             requestManager
-                .load(item.profileImage)
+                .load(item.author.image)
                 .diskCacheStrategy(DiskCacheStrategy.NONE)
                 .into(profilePhoto)
         }

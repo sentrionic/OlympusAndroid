@@ -16,6 +16,7 @@ import xyz.harmonyapp.olympusblog.R
 import xyz.harmonyapp.olympusblog.databinding.FragmentViewArticleBinding
 import xyz.harmonyapp.olympusblog.di.main.MainScope
 import xyz.harmonyapp.olympusblog.models.Article
+import xyz.harmonyapp.olympusblog.models.ArticleAuthor
 import xyz.harmonyapp.olympusblog.ui.AreYouSureCallback
 import xyz.harmonyapp.olympusblog.ui.main.article.state.ARTICLE_VIEW_STATE_BUNDLE_KEY
 import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleStateEvent.*
@@ -126,22 +127,22 @@ constructor(
                 .into(articleImage)
 
             requestManager
-                .load(article.profileImage)
+                .load(article.author.image)
                 .diskCacheStrategy(DiskCacheStrategy.NONE)
                 .into(profilePhoto)
 
             articleTitle.text = article.title
-            articleUsername.text = article.username
+            articleUsername.text = article.author.username
             articleDescription.text = article.description
             articleCreatedAt.text = DateUtils.formatDate(article.createdAt)
             articleFavoritesCount.text = article.favoritesCount.toString()
 
-            markwon.setMarkdown(binding.articleBody, article.body)
+            markwon.setMarkdown(articleBody, article.body)
 
             if (article.favorited) {
-                articleFavorited.setImageDrawable(ContextCompat.getDrawable(binding.root.context, R.drawable.ic_baseline_star_24))
+                articleFavorited.setImageDrawable(ContextCompat.getDrawable(root.context, R.drawable.ic_baseline_star_24))
             } else {
-                articleFavorited.setImageDrawable(ContextCompat.getDrawable(binding.root.context, R.drawable.ic_outline_star_outline_24))
+                articleFavorited.setImageDrawable(ContextCompat.getDrawable(root.context, R.drawable.ic_outline_star_outline_24))
             }
 
             articleFavorited.setOnClickListener {
