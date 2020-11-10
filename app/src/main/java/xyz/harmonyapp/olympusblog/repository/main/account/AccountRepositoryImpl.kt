@@ -1,4 +1,4 @@
-package xyz.harmonyapp.olympusblog.repository.main
+package xyz.harmonyapp.olympusblog.repository.main.account
 
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.flow.Flow

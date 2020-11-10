@@ -10,6 +10,7 @@ import xyz.harmonyapp.olympusblog.api.main.responses.ArticleResponse
 import xyz.harmonyapp.olympusblog.api.main.responses.CommentResponse
 import xyz.harmonyapp.olympusblog.di.main.MainScope
 import xyz.harmonyapp.olympusblog.models.AccountProperties
+import xyz.harmonyapp.olympusblog.models.Author
 import xyz.harmonyapp.olympusblog.utils.Constants.Companion.PAGINATION_PAGE_SIZE
 
 @MainScope
@@ -40,22 +41,22 @@ interface MainService {
     @GET("profiles")
     suspend fun searchProfiles(
         @Query("search") query: String,
-    ): Array<AccountProperties>
+    ): List<Author>
 
     @GET("profiles/{username}")
     suspend fun getProfileByUsername(
         @Path("username") username: String
-    ): AccountProperties
+    ): Author
 
     @POST("profiles/{username}/follow")
     suspend fun followUser(
         @Path("username") username: String
-    ): AccountProperties
+    ): Author
 
     @DELETE("profiles/{username}/follow")
     suspend fun unfollowUser(
         @Path("username") username: String
-    ): AccountProperties
+    ): Author
 
     // Articles
     @GET("articles")

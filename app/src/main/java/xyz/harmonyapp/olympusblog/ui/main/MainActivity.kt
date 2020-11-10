@@ -22,6 +22,7 @@ import xyz.harmonyapp.olympusblog.ui.main.account.UpdateAccountFragment
 import xyz.harmonyapp.olympusblog.ui.main.article.CommentFragment
 import xyz.harmonyapp.olympusblog.ui.main.article.UpdateArticleFragment
 import xyz.harmonyapp.olympusblog.ui.main.article.ViewArticleFragment
+import xyz.harmonyapp.olympusblog.ui.main.profile.ViewProfileFragment
 import xyz.harmonyapp.olympusblog.utils.BOTTOM_NAV_BACKSTACK_KEY
 import xyz.harmonyapp.olympusblog.utils.BottomNavController
 import xyz.harmonyapp.olympusblog.utils.BottomNavController.*
@@ -48,6 +49,10 @@ class MainActivity : BaseActivity(),
     @Inject
     @Named("CreateArticleFragmentFactory")
     lateinit var createArticleFragmentFactory: FragmentFactory
+
+    @Inject
+    @Named("ProfileFragmentFactory")
+    lateinit var profileFragmentFactory: FragmentFactory
 
     private val bottomNavController by lazy(LazyThreadSafetyMode.NONE) {
         BottomNavController(
@@ -159,6 +164,10 @@ class MainActivity : BaseActivity(),
 
         is ChangePasswordFragment -> {
             navController.navigate(R.id.action_changePasswordFragment_to_home)
+        }
+
+        is ViewProfileFragment -> {
+            navController.navigate(R.id.action_viewProfileFragment_to_home)
         }
 
         else -> {

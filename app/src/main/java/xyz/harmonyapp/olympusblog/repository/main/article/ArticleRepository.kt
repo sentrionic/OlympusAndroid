@@ -1,4 +1,4 @@
-package xyz.harmonyapp.olympusblog.repository.main
+package xyz.harmonyapp.olympusblog.repository.main.article
 
 import kotlinx.coroutines.flow.Flow
 import okhttp3.MultipartBody

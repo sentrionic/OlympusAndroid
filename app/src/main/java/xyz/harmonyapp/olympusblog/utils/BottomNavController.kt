@@ -17,6 +17,7 @@ import xyz.harmonyapp.olympusblog.R
 import xyz.harmonyapp.olympusblog.fragments.main.account.AccountNavHostFragment
 import xyz.harmonyapp.olympusblog.fragments.main.article.ArticleNavHostFragment
 import xyz.harmonyapp.olympusblog.fragments.main.create.CreateArticleNavHostFragment
+import xyz.harmonyapp.olympusblog.fragments.main.profile.ProfileNavHostFragment
 import xyz.harmonyapp.olympusblog.utils.BottomNavController.OnNavigationReselectedListener
 
 /**
@@ -95,6 +96,10 @@ class BottomNavController(
 
             R.id.menu_nav_create_article -> {
                 CreateArticleNavHostFragment.create(R.navigation.nav_create)
+            }
+
+            R.id.menu_nav_profile -> {
+                ProfileNavHostFragment.create(R.navigation.nav_profile)
             }
 
             else -> {

@@ -9,6 +9,7 @@ import xyz.harmonyapp.olympusblog.di.main.keys.MainViewModelKey
 import xyz.harmonyapp.olympusblog.ui.main.account.AccountViewModel
 import xyz.harmonyapp.olympusblog.ui.main.article.viewmodel.ArticleViewModel
 import xyz.harmonyapp.olympusblog.ui.main.create.CreateArticleViewModel
+import xyz.harmonyapp.olympusblog.ui.main.profile.state.ProfileViewModel
 import xyz.harmonyapp.olympusblog.viewmodels.MainViewModelFactory
 
 @Module
@@ -35,4 +36,10 @@ abstract class MainViewModelModule {
     @IntoMap
     @MainViewModelKey(CreateArticleViewModel::class)
     abstract fun bindCreateArticleViewModel(createArticleViewModel: CreateArticleViewModel): ViewModel
+
+    @MainScope
+    @Binds
+    @IntoMap
+    @MainViewModelKey(ProfileViewModel::class)
+    abstract fun bindProfileViewModel(profileViewModel: ProfileViewModel): ViewModel
 }

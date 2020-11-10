@@ -10,7 +10,14 @@ import xyz.harmonyapp.olympusblog.api.main.MainService
 import xyz.harmonyapp.olympusblog.persistence.AccountPropertiesDao
 import xyz.harmonyapp.olympusblog.persistence.AppDatabase
 import xyz.harmonyapp.olympusblog.persistence.ArticlesDao
-import xyz.harmonyapp.olympusblog.repository.main.*
+import xyz.harmonyapp.olympusblog.repository.main.account.AccountRepository
+import xyz.harmonyapp.olympusblog.repository.main.account.AccountRepositoryImpl
+import xyz.harmonyapp.olympusblog.repository.main.article.ArticleRepository
+import xyz.harmonyapp.olympusblog.repository.main.article.ArticleRepositoryImpl
+import xyz.harmonyapp.olympusblog.repository.main.create.CreateArticleRepository
+import xyz.harmonyapp.olympusblog.repository.main.create.CreateArticleRepositoryImpl
+import xyz.harmonyapp.olympusblog.repository.main.profile.ProfileRepository
+import xyz.harmonyapp.olympusblog.repository.main.profile.ProfileRepositoryImpl
 import xyz.harmonyapp.olympusblog.session.SessionManager
 
 @Module
@@ -77,5 +84,15 @@ object MainModule {
         sessionManager: SessionManager
     ): CreateArticleRepository {
         return CreateArticleRepositoryImpl(mainService, articlesDao, sessionManager)
+    }
+
+    @JvmStatic
+    @MainScope
+    @Provides
+    fun provideProfileRepository(
+        mainService: MainService,
+        sessionManager: SessionManager
+    ): ProfileRepository {
+        return ProfileRepositoryImpl(mainService, sessionManager)
     }
 }

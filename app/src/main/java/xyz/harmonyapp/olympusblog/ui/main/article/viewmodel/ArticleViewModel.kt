@@ -7,7 +7,7 @@ import okhttp3.MediaType
 import okhttp3.RequestBody
 import xyz.harmonyapp.olympusblog.di.main.MainScope
 import xyz.harmonyapp.olympusblog.persistence.ArticleQueryUtils
-import xyz.harmonyapp.olympusblog.repository.main.ArticleRepositoryImpl
+import xyz.harmonyapp.olympusblog.repository.main.article.ArticleRepositoryImpl
 import xyz.harmonyapp.olympusblog.session.SessionManager
 import xyz.harmonyapp.olympusblog.ui.BaseViewModel
 import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleStateEvent.*

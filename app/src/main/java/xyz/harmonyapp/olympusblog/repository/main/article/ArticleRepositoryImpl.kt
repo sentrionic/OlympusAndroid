@@ -1,4 +1,4 @@
-package xyz.harmonyapp.olympusblog.repository.main
+package xyz.harmonyapp.olympusblog.repository.main.article
 
 import android.util.Log
 import kotlinx.coroutines.Dispatchers.IO
