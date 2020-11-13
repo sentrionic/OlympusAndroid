@@ -24,6 +24,26 @@ sealed class ProfileStateEvent : StateEvent {
         }
     }
 
+    class GetAuthorArticlesEvent : ProfileStateEvent() {
+        override fun errorInfo(): String {
+            return "Error retrieving articles."
+        }
+
+        override fun toString(): String {
+            return "GetAuthorArticlesEvent"
+        }
+    }
+
+    class GetAuthorFavoritesEvent : ProfileStateEvent() {
+        override fun errorInfo(): String {
+            return "Error retrieving articles."
+        }
+
+        override fun toString(): String {
+            return "GetAuthorFavoritesEvent"
+        }
+    }
+
     class None : ProfileStateEvent() {
         override fun errorInfo(): String {
             return "None."

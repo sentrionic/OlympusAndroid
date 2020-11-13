@@ -27,7 +27,28 @@ data class ArticleAuthor(
             createdAt = article.createdAt,
             favorited = article.favorited,
             bookmarked = article.bookmarked,
+            tagList = article.tagList.replace("[", "").replace("]", "").split(","),
             author = author
         )
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as ArticleAuthor
+
+        if (article != other.article) return false
+        if (author != other.author) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = article.hashCode()
+        result = 31 * result + author.hashCode()
+        return result
+    }
+
+
 }

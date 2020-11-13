@@ -61,22 +61,24 @@ interface MainService {
     // Articles
     @GET("articles")
     suspend fun searchListArticlePosts(
-        @Query("search") query: String,
-        @Query("order") order: String,
+        @Query("search") query: String? = null,
+        @Query("order") order: String? = null,
         @Query("limit") limit: Int = PAGINATION_PAGE_SIZE,
-        @Query("p") page: Int
+        @Query("author") author: String? = null,
+        @Query("favorited") favorited: String? = null,
+        @Query("p") page: Int? = null
     ): ArticleListSearchResponse
 
     @GET("articles/feed")
     suspend fun getFeed(
         @Query("limit") limit: Int = PAGINATION_PAGE_SIZE,
-        @Query("cursor") cursor: String
+        @Query("p") page: Int? = null
     ): ArticleListSearchResponse
 
     @GET("articles/bookmarked")
     suspend fun getBookmarked(
         @Query("limit") limit: Int = PAGINATION_PAGE_SIZE,
-        @Query("cursor") cursor: String
+        @Query("p") page: Int? = null
     ): ArticleListSearchResponse
 
     @GET("articles/{slug}")
@@ -96,6 +98,7 @@ interface MainService {
         @Part("title") title: RequestBody,
         @Part("description") description: RequestBody,
         @Part("body") body: RequestBody,
+        @Part("tagList[]") tagList: List<String>,
         @Part image: MultipartBody.Part?
     ): ArticleResponse
 

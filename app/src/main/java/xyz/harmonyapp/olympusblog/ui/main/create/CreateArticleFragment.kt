@@ -16,8 +16,10 @@ import com.theartofdev.edmodo.cropper.CropImageView
 import io.noties.markwon.editor.MarkwonEditor
 import io.noties.markwon.editor.MarkwonEditorTextWatcher
 import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import xyz.harmonyapp.olympusblog.R
 import xyz.harmonyapp.olympusblog.databinding.FragmentCreateArticleBinding
 import xyz.harmonyapp.olympusblog.di.main.MainScope
@@ -87,7 +89,7 @@ constructor(
             }
         }
 
-        binding.updateTextview.setOnClickListener {
+        binding.updateImageButton.setOnClickListener {
             if (uiCommunicationListener.isStoragePermissionGranted()) {
                 pickFromGallery()
             }
@@ -111,10 +113,8 @@ constructor(
                 val imageFile = File(filePath)
                 Log.d(TAG, "CreateBlogFragment, imageFile: file: ${imageFile}")
                 val requestBody =
-                    RequestBody.create(
-                        MediaType.parse("image/*"),
-                        imageFile
-                    )
+                    imageFile
+                        .asRequestBody("image/*".toMediaTypeOrNull())
                 // name = field name in serializer
                 // filename = name of the image file
                 // requestBody = file with file type information

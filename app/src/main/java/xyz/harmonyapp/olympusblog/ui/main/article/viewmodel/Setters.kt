@@ -65,6 +65,7 @@ fun ArticleViewModel.setUpdatedArticleFields(
     title: String?,
     description: String?,
     body: String?,
+    tags: String?,
     uri: Uri?
 ) {
     val update = getCurrentViewStateOrNew()
@@ -72,6 +73,7 @@ fun ArticleViewModel.setUpdatedArticleFields(
     title?.let { updatedArticleFields.updatedArticleTitle = it }
     description?.let { updatedArticleFields.updatedArticleDescription = it }
     body?.let { updatedArticleFields.updatedArticleBody = it }
+    tags?.let { updatedArticleFields.updatedArticleTags = it }
     uri?.let { updatedArticleFields.updatedImageUri = it }
     update.updatedArticleFields = updatedArticleFields
     setViewState(update)
@@ -133,6 +135,14 @@ fun ArticleViewModel.setUpdatedBody(body: String) {
     val update = getCurrentViewStateOrNew()
     val updatedArticleFields = update.updatedArticleFields
     updatedArticleFields.updatedArticleBody = body
+    update.updatedArticleFields = updatedArticleFields
+    setViewState(update)
+}
+
+fun ArticleViewModel.setUpdatedTags(tags: String) {
+    val update = getCurrentViewStateOrNew()
+    val updatedArticleFields = update.updatedArticleFields
+    updatedArticleFields.updatedArticleTags = tags
     update.updatedArticleFields = updatedArticleFields
     setViewState(update)
 }

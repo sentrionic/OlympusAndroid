@@ -10,24 +10,7 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintBottom_toTopOf="@+id/article_image"
-            android:id="@+id/article_title"
-            android:gravity="center_vertical"
-            android:layout_marginStart="10dp"
-            android:text="The Title of a Blog"
-            android:textColor="#000"
-            android:textSize="19sp"
-            android:textStyle="bold"
-            />
+        android:layout_height="wrap_content">
 
 
         <ImageView
@@ -36,10 +19,27 @@
             android:layout_height="wrap_content"
             android:adjustViewBounds="true"
             android:scaleType="fitXY"
+            app:layout_constraintBottom_toTopOf="@+id/article_title"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+
+        <TextView
+            android:id="@+id/article_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="10dp"
+            android:gravity="center_vertical"
+            android:text="The Title of a Blog"
+            android:textAppearance="?attr/textAppearanceHeadline6"
+            android:textColor="#000"
             app:layout_constraintBottom_toTopOf="@+id/container1"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/article_title" />
+            app:layout_constraintTop_toBottomOf="@id/article_image" />
 
         <LinearLayout
             android:id="@+id/container1"
@@ -50,7 +50,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/article_image">
+            app:layout_constraintTop_toBottomOf="@id/article_title">
 
             <LinearLayout
                 android:id="@+id/linear"
@@ -67,15 +67,14 @@
                     android:id="@+id/profile_photo"
                     android:layout_width="30dp"
                     android:layout_height="30dp"
-                    android:layout_margin="10dp"
-                    app:civ_border_color="@color/black"
-                    app:civ_border_width="0.5dp" />
+                    app:civ_border_color="@color/black" />
 
                 <TextView
                     android:id="@+id/article_username"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginVertical="10dp"
+                    android:layout_marginStart="10dp"
                     android:text="Username"
                     android:textColor="@color/black"
                     android:textSize="20sp" />
@@ -87,7 +86,8 @@
                     android:layout_marginVertical="10dp"
                     android:layout_marginStart="10dp"
                     android:text="Updated on July 23, 2019"
-                    android:textColor="@color/grey5"
+                    android:textAppearance="?attr/textAppearanceBody2"
+                    android:textColor="?android:attr/textColorSecondary"
                     android:textSize="14sp" />
 
             </LinearLayout>
@@ -96,12 +96,11 @@
                 android:id="@+id/article_description"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
                 android:layout_marginBottom="10dp"
-                android:gravity="center_vertical"
                 android:text="Description"
-                android:textColor="#000"
-                android:textSize="18sp"
+                android:textAppearance="?attr/textAppearanceBody2"
+                android:textColor="?android:attr/textColorSecondary"
+                android:textSize="16sp"
                 app:layout_constraintBottom_toTopOf="@+id/article_body"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
@@ -111,18 +110,22 @@
                 android:layout_width="match_parent"
                 android:layout_height="0.5dp"
                 android:layout_marginTop="10dp"
-                android:background="@color/grey4">
-
-            </View>
+                android:background="@color/black" />
 
             <TextView
                 android:id="@+id/article_body"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
+                android:layout_marginTop="10dp"
                 android:text="This is some Article content"
                 android:textColor="#000"
                 android:textSize="17sp" />
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/tagsLayout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp" />
 
             <RelativeLayout
                 android:id="@+id/relLayout2"
@@ -133,8 +136,8 @@
 
                 <ImageView
                     android:id="@+id/article_favorited"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
                     android:src="@drawable/ic_outline_star_outline_24"
                     android:visibility="visible" />
 
@@ -142,37 +145,104 @@
                     android:id="@+id/article_favoritesCount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_marginStart="5dp"
                     android:layout_toEndOf="@id/article_favorited"
                     android:text="0"
-                    android:layout_marginStart="5dp"
                     android:textColor="@color/grey5"
-                    android:layout_centerVertical="true"
                     android:textSize="15sp" />
 
                 <ImageView
                     android:id="@+id/article_comments"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
                     android:layout_marginStart="20dp"
                     android:layout_toEndOf="@id/article_favoritesCount"
-                    android:src="@drawable/ic_baseline_chat_bubble_outline_24"
-                    />
+                    android:src="@drawable/ic_speech_bubble_thin" />
 
                 <ImageView
                     android:id="@+id/article_bookmark"
-                    android:layout_width="28dp"
-                    android:layout_height="28dp"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
                     android:layout_alignParentEnd="true"
                     android:src="@drawable/ic_baseline_bookmark_24" />
 
             </RelativeLayout>
 
             <View
+                android:id="@+id/divider"
                 android:layout_width="match_parent"
                 android:layout_height="0.5dp"
                 android:layout_marginTop="20dp"
                 android:background="@color/grey4" />
 
+
+            <RelativeLayout
+                android:id="@+id/relLayout1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="15dp"
+                android:background="@color/colorPrimary"
+                android:orientation="horizontal"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/divider">
+
+                <de.hdodenhof.circleimageview.CircleImageView
+                    android:id="@+id/authorImage"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    app:civ_border_color="@color/black"
+                    app:civ_border_width="0.5dp" />
+
+                <TextView
+                    android:id="@+id/writtenBy"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_toEndOf="@id/authorImage"
+                    android:text="Written By"
+                    android:textAllCaps="true"
+                    android:textAppearance="?attr/textAppearanceBody2"
+                    android:textColor="?android:attr/textColorSecondary"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/authorUsername"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/writtenBy"
+                    android:layout_marginStart="10dp"
+                    android:layout_toEndOf="@id/authorImage"
+                    android:text="Username"
+                    android:textColor="@color/black"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:id="@+id/authorBio"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/authorUsername"
+                    android:layout_marginStart="10dp"
+                    android:layout_toEndOf="@id/authorImage"
+                    android:text="Bio"
+                    android:textAppearance="?attr/textAppearanceBody2"
+                    android:textColor="?android:attr/textColorSecondary" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:text="Follow" />
+
+            </RelativeLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0.5dp"
+                android:background="@color/grey4" />
 
         </LinearLayout>
 

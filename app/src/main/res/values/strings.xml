@@ -1,9 +1,6 @@
 <resources>
     <string name="app_name">OlympusBlog</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
-
     <!-- Intent extras -->
     <string name="auth_token">auth_token</string>
     <string name="password_reset_info">We\'ve emailed you instructions for setting your password. If an account exists
@@ -22,7 +19,7 @@
     <string name="field_password">Password</string>
     <string name="field_login">Login</string>
     <string name="field_username">Username</string>
-    <string name="field_confirm_password">Confirm password</string>
+    <string name="field_confirm_password">Confirm Password</string>
     <string name="field_register">Register</string>
     <string name="network_error_response">Error</string>
     <string name="account">Account</string>
@@ -31,14 +28,14 @@
     <string name="home">Home</string>
     <string name="create">Create</string>
 
-    <string name="fragment_create_article">Create</string>
-    <string name="fragment_update_article">Update</string>
+    <string name="fragment_create_article">Create Article</string>
+    <string name="fragment_update_article">Update Article</string>
     <string name="fragment_view_article">View</string>
     <string name="fragment_account">Account</string>
-    <string name="fragment_change_password">Change password</string>
+    <string name="fragment_change_password">Change Password</string>
     <string name="fragment_article">Article</string>
-    <string name="save_changes">Save changes</string>
-    <string name="fragment_update_account">Update account</string>
+    <string name="save_changes">Save Changes</string>
+    <string name="fragment_update_account">Update Account</string>
     <string name="arg_email">arg_email</string>
     <string name="arg_username">arg_username</string>
     <string name="enter_a_username">Enter a username</string>
@@ -52,7 +49,7 @@
     <string name="register">Register</string>
     <string name="search">Search</string>
     <string name="filter">Filter</string>
-    <string name="update_password">Update password</string>
+    <string name="update_password">Update Password</string>
     <string name="filter_asc">ASC</string>
     <string name="filter_desc">DESC</string>
     <string name="filter_author">Author</string>

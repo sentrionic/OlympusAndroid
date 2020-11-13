@@ -17,8 +17,10 @@ import com.theartofdev.edmodo.cropper.CropImageView
 import io.noties.markwon.editor.MarkwonEditor
 import io.noties.markwon.editor.MarkwonEditorTextWatcher
 import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import xyz.harmonyapp.olympusblog.R
 import xyz.harmonyapp.olympusblog.databinding.FragmentUpdateArticleBinding
 import xyz.harmonyapp.olympusblog.di.main.MainScope
@@ -96,7 +98,7 @@ constructor(
             )
         )
 
-        binding.imageContainer.setOnClickListener {
+        binding.updateImageButton.setOnClickListener {
             if (uiCommunicationListener.isStoragePermissionGranted()) {
                 pickFromGallery()
             }
@@ -111,7 +113,8 @@ constructor(
                     updatedArticleFields.updatedArticleTitle,
                     updatedArticleFields.updatedArticleDescription,
                     updatedArticleFields.updatedArticleBody,
-                    updatedArticleFields.updatedImageUri
+                    updatedArticleFields.updatedImageUri,
+                    updatedArticleFields.updatedArticleTags
                 )
             }
         })
@@ -146,7 +149,8 @@ constructor(
         title: String?,
         description: String?,
         body: String?,
-        image: Uri?
+        image: Uri?,
+        tagList: String?
     ) {
 
         with(binding) {
@@ -156,6 +160,7 @@ constructor(
             articleTitle.setText(title)
             articleDescription.setText(description)
             articleBody.setText(body)
+            articleTags.setText(tagList)
         }
     }
 
@@ -168,10 +173,8 @@ constructor(
                     Log.d(TAG, "UpdateBlogFragment, imageFile: file: ${imageFile}")
                     if (imageFile.exists()) {
                         val requestBody =
-                            RequestBody.create(
-                                MediaType.parse("image/*"),
-                                imageFile
-                            )
+                            imageFile
+                                .asRequestBody("image/*".toMediaTypeOrNull())
                         // name = field name in serializer
                         // filename = name of the image file
                         // requestBody = file with file type information
@@ -188,6 +191,7 @@ constructor(
                     articleTitle.text.toString(),
                     articleDescription.text.toString(),
                     articleBody.text.toString(),
+                    articleTags.text.toString(),
                     multipartBody
                 )
             )
@@ -252,6 +256,7 @@ constructor(
                         title = null,
                         body = null,
                         description = null,
+                        tags = null,
                         uri = resultUri
                     )
                 }
@@ -284,6 +289,7 @@ constructor(
             uri = null,
             title = binding.articleTitle.text.toString(),
             description = binding.articleDescription.text.toString(),
+            tags = binding.articleTags.text.toString(),
             body = binding.articleBody.text.toString()
         )
     }

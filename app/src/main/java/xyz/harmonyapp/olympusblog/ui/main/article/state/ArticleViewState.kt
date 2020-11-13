@@ -48,7 +48,8 @@ data class ArticleViewState(
         var updatedArticleTitle: String? = null,
         var updatedArticleDescription: String? = null,
         var updatedArticleBody: String? = null,
-        var updatedImageUri: Uri? = null
+        var updatedImageUri: Uri? = null,
+        var updatedArticleTags: String? = null
     ) : Parcelable
 
 }

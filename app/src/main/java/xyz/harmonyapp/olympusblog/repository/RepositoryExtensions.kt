@@ -1,5 +1,6 @@
 package xyz.harmonyapp.olympusblog.repository
 
+import android.util.Log
 import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
@@ -38,6 +39,7 @@ suspend fun <T> safeApiCall(
                 Success(apiCall.invoke())
             }
         } catch (throwable: Throwable) {
+            throwable.printStackTrace()
             when (throwable) {
                 is TimeoutCancellationException -> {
                     val code = 408 // timeout error code
@@ -76,6 +78,7 @@ suspend fun <T> safeCacheCall(
                 CacheResult.Success(cacheCall.invoke())
             }
         } catch (throwable: Throwable) {
+            throwable.printStackTrace()
             when (throwable) {
                 is TimeoutCancellationException -> {
                     CacheResult.GenericError(CACHE_ERROR_TIMEOUT)

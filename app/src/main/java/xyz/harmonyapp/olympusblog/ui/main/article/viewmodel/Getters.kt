@@ -55,6 +55,7 @@ fun getDummyArticle(): Article {
         0,
         false,
         false,
+        emptyList(),
         getDummyAuthor()
     )
 }

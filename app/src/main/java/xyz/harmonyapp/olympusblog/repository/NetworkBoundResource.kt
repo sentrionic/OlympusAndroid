@@ -23,7 +23,7 @@ constructor(
         emit(returnCache(markJobComplete = false))
 
         // ****** STEP 2: MAKE NETWORK CALL, SAVE RESULT TO CACHE ******
-        val apiResult = safeApiCall(dispatcher) { apiCall }
+        val apiResult = safeApiCall(dispatcher) { apiCall.invoke() }
 
         when (apiResult) {
             is ApiResult.GenericError -> {
@@ -47,7 +47,7 @@ constructor(
             }
 
             is ApiResult.Success -> {
-                if (apiResult.value?.invoke() == null) {
+                if (apiResult.value == null) {
                     emit(
                         buildError<ViewState>(
                             UNKNOWN_ERROR,
@@ -56,7 +56,7 @@ constructor(
                         )
                     )
                 } else {
-                    updateCache(apiResult.value.invoke() as NetworkObj)
+                    updateCache(apiResult.value as NetworkObj)
                 }
             }
         }
@@ -88,4 +88,6 @@ constructor(
     abstract suspend fun updateCache(networkObject: NetworkObj)
 
     abstract fun handleCacheSuccess(resultObj: CacheObj): DataState<ViewState> // make sure to return null for stateEvent
+
+
 }

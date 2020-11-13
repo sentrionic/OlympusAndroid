@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="70dp"
     android:layout_marginBottom="1dp"
+    android:elevation="2dp"
     android:padding="16dp">
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-
 
         <de.hdodenhof.circleimageview.CircleImageView
             android:id="@+id/authorImage"
@@ -42,4 +43,4 @@
 
     </RelativeLayout>
 
-</androidx.cardview.widget.CardView>
+</com.google.android.material.card.MaterialCardView>

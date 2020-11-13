@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -27,7 +27,6 @@
             android:layout_height="120dp"
             app:civ_border_color="@color/black"
             app:civ_border_width="0.5dp"
-            android:layout_marginTop="50dp"
             app:layout_constraintBottom_toTopOf="@id/constraint_layout2"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
@@ -37,9 +36,8 @@
             android:id="@+id/constraint_layout2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:layout_marginHorizontal="20dp"
-            app:layout_constraintBottom_toTopOf="@id/authorArticles"
+            android:layout_marginHorizontal="30dp"
+            app:layout_constraintBottom_toTopOf="@id/chipGroup"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@id/authorImage">
@@ -61,7 +59,7 @@
                 app:layout_constraintVertical_bias=".1"
                 app:layout_constraintVertical_chainStyle="packed" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/followAuthor"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -69,8 +67,8 @@
                 android:text="Follow"
                 android:layout_marginTop="10dp"
                 android:textAlignment="center"
-                android:textColor="@color/black"
                 android:textStyle="bold"
+                style="@style/BlueOutlineButton"
                 app:layout_constraintBottom_toTopOf="@+id/authorBio"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
@@ -88,58 +86,115 @@
                 android:text="Bio"
                 android:textAlignment="center"
                 android:textSize="18sp"
-                app:layout_constraintBottom_toTopOf="@+id/authorFollowers"
-                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintBottom_toTopOf="@+id/linear"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/followAuthor" />
 
-
-            <TextView
-                android:id="@+id/authorFollowers"
-                android:layout_width="0dp"
+            <LinearLayout
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:paddingHorizontal="16dp"
-                android:text="50 Followers"
-                android:textAlignment="center"
-                android:textSize="14sp"
-                app:layout_constraintBottom_toTopOf="@+id/authorFollowee"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/authorBio" />
-
-            <TextView
-                android:id="@+id/authorFollowee"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:paddingHorizontal="16dp"
-                android:text="50 Followee"
-                android:textAlignment="center"
-                android:textSize="14sp"
+                android:id="@+id/linear"
+                app:layout_constraintTop_toBottomOf="@+id/authorBio"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/authorFollowers" />
+                android:orientation="horizontal"
+                android:textAlignment="center"
+                android:layout_marginTop="10dp"
+                >
 
+                <TextView
+                    android:id="@+id/authorFollowers"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="16dp"
+                    android:text="50 Followers"
+                    android:textAlignment="center"
+                    android:textSize="14sp"
+                    app:layout_constraintBottom_toTopOf="@+id/authorFollowee"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/authorBio" />
+
+                <TextView
+                    android:id="@+id/authorFollowee"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="16dp"
+                    android:text="50 Followee"
+                    android:textAlignment="center"
+                    android:textSize="14sp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/authorFollowers" />
+
+            </LinearLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-
-        <TextView
-            android:id="@+id/authorArticles"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="Articles"
-            android:textColor="@color/link_blue"
-            android:textSize="18sp"
+        <View
+            android:id="@+id/divider"
+            android:layout_width="match_parent"
+            android:layout_height="0.5dp"
             android:layout_marginTop="20dp"
-            app:layout_constraintBottom_toBottomOf="parent"
+            android:background="@color/grey4"
+            app:layout_constraintBottom_toTopOf="@id/chipGroup"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/constraint_layout2" />
+            app:layout_constraintTop_toBottomOf="@+id/constraint_layout2"
+            />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:singleSelection="true"
+            app:layout_constraintBottom_toTopOf="@id/profileArticlesRecyclerview"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/divider"
+            android:layout_marginTop="10dp"
+            >
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipArticles"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:checkable="true"
+            android:clickable="true"
+            android:focusable="true"
+            app:chipBackgroundColor="@color/bg_chip_state_list"
+            android:text="Articles"/>
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipFavorites"
+            style="@style/Widget.MaterialComponents.Chip.Choice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checkable="true"
+            android:clickable="true"
+            android:focusable="true"
+            app:chipBackgroundColor="@color/bg_chip_state_list"
+            android:text="Favorites"/>
+
+    </com.google.android.material.chip.ChipGroup>
+
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/profileArticlesRecyclerview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/chipGroup"
+        />
+
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-</ScrollView>
+</androidx.core.widget.NestedScrollView>

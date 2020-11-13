@@ -176,6 +176,28 @@ constructor(
                 viewModel.loadProfiles()
             }
         }
+
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String): Boolean {
+                viewModel.setQuery(query).let {
+                    viewModel.loadProfiles()
+                }
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String): Boolean {
+                if (newText.length > 2) {
+                    viewModel.setQuery(newText).let {
+                        viewModel.loadProfiles()
+                    }
+                }
+                else {
+                    recyclerAdapter.submitList(emptyList())
+                }
+                return true
+            }
+
+        })
     }
 
     private fun onProfileSearch() {

@@ -15,8 +15,10 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.theartofdev.edmodo.cropper.CropImage
 import com.theartofdev.edmodo.cropper.CropImageView
 import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.asRequestBody
 import xyz.harmonyapp.olympusblog.R
 import xyz.harmonyapp.olympusblog.databinding.FragmentUpdateAccountBinding
 import xyz.harmonyapp.olympusblog.di.main.MainScope
@@ -135,10 +137,8 @@ constructor(
                 Log.d(TAG, "UpdateBlogFragment, imageFile: file: ${imageFile}")
                 if (imageFile.exists()) {
                     val requestBody =
-                        RequestBody.create(
-                            MediaType.parse("image/*"),
-                            imageFile
-                        )
+                        imageFile
+                            .asRequestBody("image/*".toMediaTypeOrNull())
                     // name = field name in serializer
                     // filename = name of the image file
                     // requestBody = file with file type information

@@ -20,6 +20,16 @@ interface ArticleRepository {
         stateEvent: StateEvent
     ): Flow<DataState<ArticleViewState>>
 
+    fun getFeed(
+        page: Int,
+        stateEvent: StateEvent
+    ): Flow<DataState<ArticleViewState>>
+
+    fun getBookmarkedArticles(
+        page: Int,
+        stateEvent: StateEvent
+    ): Flow<DataState<ArticleViewState>>
+
     fun dropDatabase(stateEvent: StateEvent): Flow<DataState<ArticleViewState>>
 
     fun restoreArticleListFromCache(
@@ -45,6 +55,7 @@ interface ArticleRepository {
         title: RequestBody,
         description: RequestBody,
         body: RequestBody,
+        tags: List<String>,
         image: MultipartBody.Part?,
         stateEvent: StateEvent
     ): Flow<DataState<ArticleViewState>>

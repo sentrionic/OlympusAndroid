@@ -36,13 +36,13 @@ data class ArticleResponse(
     @Json(name = "bookmarked")
     var bookmarked: Boolean,
 
+    @Json(name = "tagList")
+    var tagList: List<String>,
+
     @Json(name = "author")
     var author: Author,
 
 ) {
-    override fun toString(): String {
-        return "Article(id=$id, title='$title', description='$description', slug='$slug', body='$body', image='$image', createdAt=$createdAt, favoritesCount=$favoritesCount, favorited=$favorited, author=$author)"
-    }
 
     fun toArticle(): ArticleEntity {
         return ArticleEntity(
@@ -56,7 +56,12 @@ data class ArticleResponse(
             favorited = favorited,
             bookmarked = bookmarked,
             favoritesCount = favoritesCount,
+            tagList = tagList.toString(),
             authorId = author.id
         )
+    }
+
+    override fun toString(): String {
+        return "ArticleResponse(id=$id, title='$title', description='$description', slug='$slug', body='$body', image='$image', createdAt='$createdAt', favoritesCount=$favoritesCount, favorited=$favorited, bookmarked=$bookmarked, tagList=$tagList, author=$author)"
     }
 }

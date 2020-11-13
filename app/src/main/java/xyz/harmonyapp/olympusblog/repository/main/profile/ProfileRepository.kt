@@ -20,4 +20,13 @@ interface ProfileRepository {
         stateEvent: StateEvent
     ): Flow<DataState<ProfileViewState>>
 
+    fun getAuthorStories(
+        author: Author,
+        stateEvent: StateEvent
+    ): Flow<DataState<ProfileViewState>>
+
+    fun getAuthorFavorites(
+        author: Author,
+        stateEvent: StateEvent
+    ): Flow<DataState<ProfileViewState>>
 }

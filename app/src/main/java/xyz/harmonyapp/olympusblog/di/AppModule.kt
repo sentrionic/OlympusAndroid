@@ -15,6 +15,7 @@ import com.squareup.moshi.Moshi
 import dagger.Module
 import dagger.Provides
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import xyz.harmonyapp.olympusblog.R
@@ -63,10 +64,18 @@ object AppModule {
     @JvmStatic
     @Singleton
     @Provides
-    fun provideOkHttpClient(cookieJar: ClearableCookieJar): OkHttpClient {
+    fun provideInterceptor(): HttpLoggingInterceptor {
+        return HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BASIC)
+    }
+
+    @JvmStatic
+    @Singleton
+    @Provides
+    fun provideOkHttpClient(cookieJar: ClearableCookieJar, interceptor: HttpLoggingInterceptor): OkHttpClient {
         return OkHttpClient
             .Builder()
             .cookieJar(cookieJar)
+            .addInterceptor(interceptor)
             .build()
     }
 

@@ -4,7 +4,9 @@ import android.net.Uri
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import xyz.harmonyapp.olympusblog.di.main.MainScope
 import xyz.harmonyapp.olympusblog.repository.main.create.CreateArticleRepositoryImpl
 import xyz.harmonyapp.olympusblog.session.SessionManager
@@ -39,10 +41,10 @@ constructor(
         val job: Flow<DataState<CreateArticleViewState>> = when (stateEvent) {
 
             is CreateNewArticleEvent -> {
-                val title = RequestBody.create(MediaType.parse("text/plain"), stateEvent.title)
+                val title = stateEvent.title.toRequestBody("text/plain".toMediaTypeOrNull())
                 val description =
-                    RequestBody.create(MediaType.parse("text/plain"), stateEvent.description)
-                val body = RequestBody.create(MediaType.parse("text/plain"), stateEvent.body)
+                    RequestBody.create("text/plain".toMediaTypeOrNull(), stateEvent.description)
+                val body = stateEvent.body.toRequestBody("text/plain".toMediaTypeOrNull())
                 val tags = stateEvent.tags.split(",")
 
                 createArticleRepository.createNewArticle(

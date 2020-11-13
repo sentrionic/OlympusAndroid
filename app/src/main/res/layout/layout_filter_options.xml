@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:id="@+id/linear"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center|top"
+        android:paddingVertical="5dp"
+        android:orientation="horizontal">
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:singleSelection="true">
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipArticles"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="true"
+                android:checked="true"
+                android:clickable="true"
+                android:focusable="true"
+                android:text="Global"
+                app:chipBackgroundColor="@color/bg_chip_state_list" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipFavorites"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="true"
+                android:clickable="true"
+                android:focusable="true"
+                android:text="Feed"
+                app:chipBackgroundColor="@color/bg_chip_state_list" />
+
+            <com.google.android.material.chip.Chip
+                android:id="@+id/chipBookmarked"
+                style="@style/Widget.MaterialComponents.Chip.Choice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checkable="true"
+                android:clickable="true"
+                android:focusable="true"
+                android:text="Bookmark"
+                app:chipBackgroundColor="@color/bg_chip_state_list" />
+
+        </com.google.android.material.chip.ChipGroup>
+
+    </LinearLayout>
+
+
+</com.google.android.material.card.MaterialCardView>

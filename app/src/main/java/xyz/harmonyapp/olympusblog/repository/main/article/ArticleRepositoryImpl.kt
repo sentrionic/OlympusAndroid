@@ -118,6 +118,144 @@ constructor(
         }.result
     }
 
+    override fun getFeed(
+        page: Int,
+        stateEvent: StateEvent
+    ): Flow<DataState<ArticleViewState>> {
+        var hasMore = false
+        return object :
+            NetworkBoundResource<ArticleListSearchResponse, List<ArticleAuthor>, ArticleViewState>(
+                dispatcher = IO,
+                stateEvent = stateEvent,
+                apiCall = {
+                    mainService.getFeed(
+                        page = page
+                    )
+                },
+                cacheCall = {
+                    articlesDao.searchArticlesOrderByDateDESC(
+                        page = page,
+                        query = "",
+                    )
+                }
+            ) {
+            override suspend fun updateCache(networkObject: ArticleListSearchResponse) {
+                hasMore = networkObject.hasMore
+                withContext(IO) {
+                    for (article in networkObject.articles) {
+                        try {
+                            // Launch each insert as a separate job to be executed in parallel
+                            launch {
+                                Log.d(TAG, "updateLocalDb: inserting article: ${article}")
+                                articlesDao.insert(article.toArticle())
+                                article.author.following = true
+                                articlesDao.insertAuthor(article.author)
+                            }
+                        } catch (e: Exception) {
+                            Log.e(
+                                TAG,
+                                "updateLocalDb: error updating cache data on article post with slug: ${article.slug}. " +
+                                        "${e.message}"
+                            )
+                        }
+                    }
+                }
+            }
+
+            override fun handleCacheSuccess(resultObj: List<ArticleAuthor>): DataState<ArticleViewState> {
+
+                val articleList: ArrayList<Article> = ArrayList()
+                for (articleResponse in resultObj) {
+                    if (articleResponse.author.following) {
+                        articleList.add(
+                            articleResponse.toArticle()
+                        )
+                    }
+                }
+
+                val viewState = ArticleViewState(
+                    articleFields = ArticleFields(
+                        articleList = articleList,
+                        isQueryExhausted = !hasMore
+                    )
+                )
+                return DataState.data(
+                    response = null,
+                    data = viewState,
+                    stateEvent = stateEvent
+                )
+            }
+
+        }.result
+    }
+
+    override fun getBookmarkedArticles(
+        page: Int,
+        stateEvent: StateEvent
+    ): Flow<DataState<ArticleViewState>> {
+        var hasMore = false
+        return object :
+            NetworkBoundResource<ArticleListSearchResponse, List<ArticleAuthor>, ArticleViewState>(
+                dispatcher = IO,
+                stateEvent = stateEvent,
+                apiCall = {
+                    mainService.getBookmarked(
+                        page = page
+                    )
+                },
+                cacheCall = {
+                    articlesDao.getBookmarkedArticles(
+                        page = page
+                    )
+                }
+            ) {
+            override suspend fun updateCache(networkObject: ArticleListSearchResponse) {
+                hasMore = networkObject.hasMore
+                withContext(IO) {
+                    for (article in networkObject.articles) {
+                        try {
+                            // Launch each insert as a separate job to be executed in parallel
+                            launch {
+                                Log.d(TAG, "updateLocalDb: inserting article: ${article}")
+                                articlesDao.insert(article.toArticle())
+                                articlesDao.insertAuthor(article.author)
+                            }
+                        } catch (e: Exception) {
+                            Log.e(
+                                TAG,
+                                "updateLocalDb: error updating cache data on article post with slug: ${article.slug}. " +
+                                        "${e.message}"
+                            )
+                        }
+                    }
+                }
+            }
+
+            override fun handleCacheSuccess(resultObj: List<ArticleAuthor>): DataState<ArticleViewState> {
+
+                val articleList: ArrayList<Article> = ArrayList()
+                for (articleResponse in resultObj) {
+                    articleList.add(
+                        articleResponse.toArticle()
+                    )
+                }
+
+                val viewState = ArticleViewState(
+                    articleFields = ArticleFields(
+                        articleList = articleList,
+                        isQueryExhausted = !hasMore
+                    )
+                )
+                return DataState.data(
+                    response = null,
+                    data = viewState,
+                    stateEvent = stateEvent
+                )
+            }
+
+        }.result
+    }
+
     override fun restoreArticleListFromCache(
         query: String,
         order: String,
@@ -305,6 +443,7 @@ constructor(
         title: RequestBody,
         description: RequestBody,
         body: RequestBody,
+        tags: List<String>,
         image: MultipartBody.Part?,
         stateEvent: StateEvent
     ) = flow {
@@ -315,6 +454,7 @@ constructor(
                 title,
                 description,
                 body,
+                tags,
                 image
             )
         }
@@ -324,17 +464,16 @@ constructor(
                 stateEvent = stateEvent
             ) {
                 override suspend fun handleSuccess(resultObj: ArticleResponse): DataState<ArticleViewState> {
-
+                    val article = resultObj.toArticle()
                     articlesDao.updateArticle(
-                        id = resultObj.id,
-                        title = resultObj.title,
-                        description = resultObj.description,
-                        body = resultObj.body,
-                        image = resultObj.image
+                        id = article.id,
+                        title = article.title,
+                        description = article.description,
+                        body = article.description,
+                        image = article.image,
+                        tags = article.tagList.replace("\"", "")
                     )
-
                     val updatedArticle = articlesDao.getArticleBySlug(resultObj.slug)
-
                     return DataState.data(
                         response = Response(
                             message = SUCCESS_ARTICLE_UPDATED,

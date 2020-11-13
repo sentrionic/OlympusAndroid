@@ -7,10 +7,8 @@ import xyz.harmonyapp.olympusblog.models.Author
 import xyz.harmonyapp.olympusblog.repository.main.profile.ProfileRepositoryImpl
 import xyz.harmonyapp.olympusblog.session.SessionManager
 import xyz.harmonyapp.olympusblog.ui.BaseViewModel
-import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleStateEvent
 import xyz.harmonyapp.olympusblog.ui.main.article.viewmodel.getDummyAuthor
-import xyz.harmonyapp.olympusblog.ui.main.profile.state.ProfileStateEvent.ProfileSearchEvent
-import xyz.harmonyapp.olympusblog.ui.main.profile.state.ProfileStateEvent.ToggleFollowEvent
+import xyz.harmonyapp.olympusblog.ui.main.profile.state.ProfileStateEvent.*
 import xyz.harmonyapp.olympusblog.utils.*
 import xyz.harmonyapp.olympusblog.utils.ErrorHandling.Companion.INVALID_STATE_EVENT
 import javax.inject.Inject
@@ -35,6 +33,12 @@ constructor(
             viewProfileFields.profile?.let { profile ->
                 setProfile(profile)
             }
+
+            viewProfileFields.articleList?.let { list ->
+                val update = getCurrentViewStateOrNew()
+                update.viewProfileFields.articleList = list
+                setViewState(update)
+            }
         }
 
     }
@@ -49,6 +53,14 @@ constructor(
 
                 is ToggleFollowEvent -> {
                     profileRepository.toggleFollow(author = getAuthor(), stateEvent = stateEvent)
+                }
+
+                is GetAuthorArticlesEvent -> {
+                    profileRepository.getAuthorStories(author = getAuthor(), stateEvent = stateEvent)
+                }
+
+                is GetAuthorFavoritesEvent -> {
+                    profileRepository.getAuthorFavorites(author = getAuthor(), stateEvent = stateEvent)
                 }
 
                 else -> {

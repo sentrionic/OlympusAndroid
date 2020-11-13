@@ -1,5 +1,6 @@
 package xyz.harmonyapp.olympusblog.persistence
 
+import android.icu.text.CaseMap
 import androidx.room.*
 import xyz.harmonyapp.olympusblog.models.ArticleEntity
 import xyz.harmonyapp.olympusblog.models.ArticleAuthor
@@ -74,16 +75,26 @@ interface ArticlesDao {
     ): List<ArticleAuthor>
 
     @Transaction
+    @Query(
+        """
+        SELECT * FROM articles 
+        WHERE bookmarked = 1
+        ORDER BY createdAt DESC 
+        LIMIT (:page * :pageSize)
+        """
+    )
+    suspend fun getBookmarkedArticles(
+        page: Int,
+        pageSize: Int = PAGINATION_PAGE_SIZE
+    ): List<ArticleAuthor>
+
+    @Transaction
     @Query("SELECT * FROM articles WHERE slug = :slug")
     suspend fun getArticleBySlug(slug: String): ArticleAuthor
 
-    @Delete
-    suspend fun deleteArticle(article: ArticleEntity)
-
-    @Transaction
     @Query(
         """
-        UPDATE articles SET title = :title, body = :body, image = :image, description = :description 
+        UPDATE articles SET title = :title, body = :body, tagList = :tags, description = :description, image = :image 
         WHERE id = :id
         """
     )
@@ -92,8 +103,12 @@ interface ArticlesDao {
         title: String,
         body: String,
         description: String,
+        tags: String,
         image: String
     )
+
+    @Delete
+    suspend fun deleteArticle(article: ArticleEntity)
 
     @Transaction
     @Query(

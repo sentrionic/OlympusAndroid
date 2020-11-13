@@ -16,6 +16,26 @@ sealed class ArticleStateEvent : StateEvent {
         }
     }
 
+    class ArticleFeedEvent(val clearLayoutManagerState: Boolean = true) : ArticleStateEvent() {
+        override fun errorInfo(): String {
+            return "Error retrieving your feed."
+        }
+
+        override fun toString(): String {
+            return "ArticleFeedEvent"
+        }
+    }
+
+    class ArticleBookmarkEvent(val clearLayoutManagerState: Boolean = true) : ArticleStateEvent() {
+        override fun errorInfo(): String {
+            return "Error retrieving your bookmarked articles."
+        }
+
+        override fun toString(): String {
+            return "ArticleBookmarkEvent"
+        }
+    }
+
     class CleanDBEvent : ArticleStateEvent() {
         override fun errorInfo(): String {
             return "Error deleting database."
@@ -50,6 +70,7 @@ sealed class ArticleStateEvent : StateEvent {
         val title: String,
         val description: String,
         val body: String,
+        val tags: String,
         val image: MultipartBody.Part?
     ) : ArticleStateEvent() {
         override fun errorInfo(): String {

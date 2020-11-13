@@ -10,10 +10,12 @@ import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
 import xyz.harmonyapp.olympusblog.R
 import xyz.harmonyapp.olympusblog.databinding.LayoutArticleListItemBinding
+import xyz.harmonyapp.olympusblog.databinding.LayoutFilterOptionsBinding
 import xyz.harmonyapp.olympusblog.databinding.LayoutNoMoreResultsBinding
 import xyz.harmonyapp.olympusblog.models.Article
 import xyz.harmonyapp.olympusblog.models.ArticleAuthor
 import xyz.harmonyapp.olympusblog.ui.main.article.viewmodel.getDummyAuthor
+import xyz.harmonyapp.olympusblog.ui.main.profile.state.ProfileStateEvent
 import xyz.harmonyapp.olympusblog.utils.DateUtils
 import xyz.harmonyapp.olympusblog.utils.GenericViewHolder
 
@@ -24,7 +26,8 @@ class ArticleListAdapter(
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     private val TAG: String = "AppDebug"
-    private val NO_MORE_RESULTS = -1
+    private val NO_MORE_RESULTS = -2
+    private val CHIP_ITEM = -1
     private val ARTICLE_ITEM = 0
     private val NO_MORE_RESULTS_ARTICLE_MARKER = Article(
         NO_MORE_RESULTS,
@@ -37,6 +40,22 @@ class ArticleListAdapter(
         0,
         false,
         false,
+        emptyList(),
+        getDummyAuthor()
+    )
+
+    private val ARTICLE_CHIP_LIST = Article(
+        CHIP_ITEM,
+        "",
+        "",
+        "",
+        "",
+        "",
+        "",
+        0,
+        false,
+        false,
+        emptyList(),
         getDummyAuthor()
     )
 
@@ -68,6 +87,16 @@ class ArticleListAdapter(
                 val binding = LayoutNoMoreResultsBinding.inflate(inflater, parent, false)
                 return GenericViewHolder(
                     binding = binding,
+                )
+            }
+
+            CHIP_ITEM -> {
+                Log.e(TAG, "onCreateViewHolder: No more results...")
+                val inflater = LayoutInflater.from(parent.context)
+                val binding = LayoutFilterOptionsBinding.inflate(inflater, parent, false)
+                return ChipViewHolder(
+                    binding = binding,
+                    interaction = interaction
                 )
             }
 
@@ -118,6 +147,9 @@ class ArticleListAdapter(
             is ArticleViewHolder -> {
                 holder.bind(differ.currentList[position])
             }
+            is ChipViewHolder -> {
+                holder.bind(differ.currentList[position])
+            }
         }
     }
 
@@ -145,9 +177,12 @@ class ArticleListAdapter(
         }
     }
 
-    fun submitList(articleList: List<Article>?, isQueryExhausted: Boolean) {
+    fun submitList(articleList: List<Article>?, isQueryExhausted: Boolean, isLoading: Boolean, isHome: Boolean = false) {
         val newList = articleList?.toMutableList()
-        if (isQueryExhausted)
+        if (isHome) {
+            newList?.add(0, ARTICLE_CHIP_LIST)
+        }
+        if (isQueryExhausted && !isLoading)
             newList?.add(NO_MORE_RESULTS_ARTICLE_MARKER)
         val commitCallback = Runnable {
             interaction?.restoreListPosition()
@@ -225,10 +260,32 @@ class ArticleListAdapter(
         }
     }
 
+    class ChipViewHolder
+    constructor(
+        val binding: LayoutFilterOptionsBinding,
+        private val interaction: Interaction?
+    ) : RecyclerView.ViewHolder(binding.root) {
+
+        fun bind(item: Article) = with(binding) {
+            chipArticles.setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) interaction?.onChipSelected(0)
+            }
+
+            chipFavorites.setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) interaction?.onChipSelected(1)
+            }
+
+            chipBookmarked.setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) interaction?.onChipSelected(2)
+            }
+        }
+    }
+
     interface Interaction {
         fun onItemSelected(position: Int, item: Article)
         fun restoreListPosition()
         fun toggleFavorite(position: Int, item: Article)
         fun toggleBookmark(position: Int, item: Article)
+        fun onChipSelected(index: Int)
     }
 }

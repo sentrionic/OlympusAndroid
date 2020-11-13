@@ -1,10 +1,13 @@
 package xyz.harmonyapp.olympusblog.ui.main.article.viewmodel
 
 import android.content.SharedPreferences
+import android.util.Log
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import xyz.harmonyapp.olympusblog.di.main.MainScope
 import xyz.harmonyapp.olympusblog.persistence.ArticleQueryUtils
 import xyz.harmonyapp.olympusblog.repository.main.article.ArticleRepositoryImpl
@@ -82,6 +85,10 @@ constructor(
             updatedArticleFields.updatedArticleBody?.let { body ->
                 setUpdatedBody(body)
             }
+
+            updatedArticleFields.updatedArticleTags?.let { tags ->
+                setUpdatedTags(tags)
+            }
         }
 
         data.viewCommentsFields.let { viewCommentsFields ->
@@ -107,6 +114,26 @@ constructor(
                     )
                 }
 
+                is ArticleFeedEvent -> {
+                    if (stateEvent.clearLayoutManagerState) {
+                        clearLayoutManagerState()
+                    }
+                    articleRepository.getFeed(
+                        stateEvent = stateEvent,
+                        page = getPage()
+                    )
+                }
+
+                is ArticleBookmarkEvent -> {
+                    if (stateEvent.clearLayoutManagerState) {
+                        clearLayoutManagerState()
+                    }
+                    articleRepository.getBookmarkedArticles(
+                        stateEvent = stateEvent,
+                        page = getPage()
+                    )
+                }
+
                 is CleanDBEvent -> {
                     articleRepository.dropDatabase(stateEvent)
                 }
@@ -121,26 +148,23 @@ constructor(
 
                 is UpdateArticleEvent -> {
 
-                    val title = RequestBody.create(
-                        MediaType.parse("text/plain"),
-                        stateEvent.title
-                    )
+                    val title = stateEvent.title
+                        .toRequestBody("text/plain".toMediaTypeOrNull())
 
-                    val description = RequestBody.create(
-                        MediaType.parse("text/plain"),
-                        stateEvent.description
-                    )
+                    val description = stateEvent.description
+                        .toRequestBody("text/plain".toMediaTypeOrNull())
 
-                    val body = RequestBody.create(
-                        MediaType.parse("text/plain"),
-                        stateEvent.body
-                    )
+                    val body = stateEvent.body
+                        .toRequestBody("text/plain".toMediaTypeOrNull())
+
+                    val tags = stateEvent.tags.replace(" ", "").split(",")
 
                     articleRepository.updateArticle(
                         slug = getSlug(),
                         title = title,
                         description = description,
                         body = body,
+                        tags = tags,
                         image = stateEvent.image,
                         stateEvent = stateEvent
                     )

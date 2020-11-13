@@ -3,20 +3,23 @@ package xyz.harmonyapp.olympusblog.ui.main.article
 import android.os.Bundle
 import android.util.Log
 import android.view.*
+import android.widget.LinearLayout
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
+import androidx.core.view.marginEnd
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.RequestManager
 import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.google.android.material.chip.Chip
 import io.noties.markwon.Markwon
 import xyz.harmonyapp.olympusblog.R
 import xyz.harmonyapp.olympusblog.databinding.FragmentViewArticleBinding
 import xyz.harmonyapp.olympusblog.di.main.MainScope
 import xyz.harmonyapp.olympusblog.models.Article
-import xyz.harmonyapp.olympusblog.models.ArticleAuthor
 import xyz.harmonyapp.olympusblog.ui.AreYouSureCallback
 import xyz.harmonyapp.olympusblog.ui.main.article.state.ARTICLE_VIEW_STATE_BUNDLE_KEY
 import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleStateEvent.*
@@ -131,18 +134,51 @@ constructor(
                 .diskCacheStrategy(DiskCacheStrategy.NONE)
                 .into(profilePhoto)
 
+            requestManager
+                .load(article.author.image)
+                .diskCacheStrategy(DiskCacheStrategy.NONE)
+                .into(authorImage)
+
             articleTitle.text = article.title
             articleUsername.text = article.author.username
             articleDescription.text = article.description
             articleCreatedAt.text = DateUtils.formatDate(article.createdAt)
             articleFavoritesCount.text = article.favoritesCount.toString()
 
+            authorUsername.text = article.author.username
+            authorBio.text = article.author.bio
+
             markwon.setMarkdown(articleBody, article.body)
 
+            tagsLayout.removeAllViews()
+
+            article.tagList.forEachIndexed { i, tag ->
+                val chip = Chip(requireContext()).apply {
+                    text = tag
+                    layoutParams = LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                    ).apply {
+                        marginEnd = 20
+                    }
+                }
+                tagsLayout.addView(chip)
+            }
+
             if (article.favorited) {
-                articleFavorited.setImageDrawable(ContextCompat.getDrawable(root.context, R.drawable.ic_baseline_star_24))
+                articleFavorited.setImageDrawable(
+                    ContextCompat.getDrawable(
+                        root.context,
+                        R.drawable.ic_baseline_star_24
+                    )
+                )
             } else {
-                articleFavorited.setImageDrawable(ContextCompat.getDrawable(root.context, R.drawable.ic_outline_star_outline_24))
+                articleFavorited.setImageDrawable(
+                    ContextCompat.getDrawable(
+                        root.context,
+                        R.drawable.ic_outline_star_outline_24
+                    )
+                )
             }
 
             articleFavorited.setOnClickListener {
@@ -195,6 +231,7 @@ constructor(
                 viewModel.getArticle().title,
                 viewModel.getArticle().description,
                 viewModel.getArticle().body,
+                viewModel.getArticle().tagList.joinToString(),
                 viewModel.getArticle().image.toUri()
             )
             findNavController().navigate(R.id.action_viewArticleFragment_to_updateArticleFragment)

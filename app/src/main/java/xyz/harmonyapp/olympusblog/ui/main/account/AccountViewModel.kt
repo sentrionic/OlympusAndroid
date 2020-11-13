@@ -4,7 +4,9 @@ import android.net.Uri
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import okhttp3.MediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import xyz.harmonyapp.olympusblog.di.main.MainScope
 import xyz.harmonyapp.olympusblog.models.AccountProperties
 import xyz.harmonyapp.olympusblog.repository.main.account.AccountRepositoryImpl
@@ -43,10 +45,10 @@ constructor(
 
                 is UpdateAccountPropertiesEvent -> {
                     val email =
-                        RequestBody.create(MediaType.parse("text/plain"), stateEvent.email)
+                        stateEvent.email.toRequestBody("text/plain".toMediaTypeOrNull())
                     val username =
-                        RequestBody.create(MediaType.parse("text/plain"), stateEvent.username)
-                    val bio = RequestBody.create(MediaType.parse("text/plain"), stateEvent.bio)
+                        stateEvent.username.toRequestBody("text/plain".toMediaTypeOrNull())
+                    val bio = RequestBody.create("text/plain".toMediaTypeOrNull(), stateEvent.bio)
                     accountRepository.saveAccountProperties(
                         stateEvent = stateEvent,
                         email = email,

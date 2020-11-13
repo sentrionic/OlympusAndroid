@@ -1,7 +1,10 @@
 package xyz.harmonyapp.olympusblog.ui.main.article
 
 import android.app.SearchManager
+import android.content.Context
 import android.content.Context.SEARCH_SERVICE
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Bundle
 import android.util.Log
 import android.view.*
@@ -67,7 +70,7 @@ constructor(
                     viewModel.setViewState(viewState)
                 }
             }
-        } else {
+        } else if (isConnectedToTheInternet()) {
             viewModel.setStateEvent(CleanDBEvent())
         }
     }
@@ -119,7 +122,9 @@ constructor(
 
                     submitList(
                         articleList = viewState.articleFields.articleList,
-                        isQueryExhausted = viewState.articleFields.isQueryExhausted ?: true
+                        isQueryExhausted = viewState.articleFields.isQueryExhausted ?: true,
+                        isLoading = viewModel.areAnyJobsActive(),
+                        isHome = true
                     )
                 }
             }
@@ -326,6 +331,14 @@ constructor(
         }
     }
 
+    override fun onChipSelected(index: Int) {
+        when (index) {
+            0 -> viewModel.setStateEvent(ArticleSearchEvent())
+            1 -> viewModel.setStateEvent(ArticleFeedEvent())
+            2 -> viewModel.setStateEvent(ArticleBookmarkEvent())
+        }
+    }
+
     private fun setupGlide() {
         activity?.let {
             requestManager = Glide.with(it)
@@ -354,5 +367,18 @@ constructor(
         binding.articleRecyclerview.adapter = null
         requestManager = null
         _binding = null
+    }
+
+    private fun isConnectedToTheInternet(): Boolean {
+        (requireContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager).apply {
+            return getNetworkCapabilities(activeNetwork)?.run {
+                when {
+                    hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
+                    hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
+                    hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) -> true
+                    else -> false
+                }
+            } ?: false
+        }
     }
 }
