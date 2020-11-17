@@ -1,4 +1,4 @@
-package xyz.harmonyapp.olympusblog.ui.main.create
+package xyz.harmonyapp.olympusblog.ui.main.article
 
 import android.app.Activity
 import android.content.Intent
@@ -10,25 +10,25 @@ import android.view.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.RequestManager
 import com.theartofdev.edmodo.cropper.CropImage
 import com.theartofdev.edmodo.cropper.CropImageView
 import io.noties.markwon.editor.MarkwonEditor
 import io.noties.markwon.editor.MarkwonEditorTextWatcher
-import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import xyz.harmonyapp.olympusblog.R
 import xyz.harmonyapp.olympusblog.databinding.FragmentCreateArticleBinding
 import xyz.harmonyapp.olympusblog.di.main.MainScope
 import xyz.harmonyapp.olympusblog.ui.AreYouSureCallback
-import xyz.harmonyapp.olympusblog.ui.main.create.state.CREATE_ARTICLE_VIEW_STATE_BUNDLE_KEY
-import xyz.harmonyapp.olympusblog.ui.main.create.state.CreateArticleStateEvent.CreateNewArticleEvent
-import xyz.harmonyapp.olympusblog.ui.main.create.state.CreateArticleViewState
+import xyz.harmonyapp.olympusblog.ui.main.article.state.ARTICLE_VIEW_STATE_BUNDLE_KEY
+import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleStateEvent.CreateNewArticleEvent
+import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleViewState
+import xyz.harmonyapp.olympusblog.ui.main.article.viewmodel.clearNewArticleFields
+import xyz.harmonyapp.olympusblog.ui.main.article.viewmodel.setNewArticleFields
 import xyz.harmonyapp.olympusblog.utils.Constants.Companion.GALLERY_REQUEST_CODE
-import xyz.harmonyapp.olympusblog.utils.ErrorHandling.Companion.ERROR_MUST_SELECT_IMAGE
 import xyz.harmonyapp.olympusblog.utils.ErrorHandling.Companion.ERROR_SOMETHING_WRONG_WITH_IMAGE
 import xyz.harmonyapp.olympusblog.utils.MessageType
 import xyz.harmonyapp.olympusblog.utils.Response
@@ -46,7 +46,7 @@ constructor(
     viewModelFactory: ViewModelProvider.Factory,
     private val requestManager: RequestManager,
     private val editor: MarkwonEditor
-) : BaseCreateArticleFragment(viewModelFactory) {
+) : BaseArticleFragment(viewModelFactory) {
 
     private var _binding: FragmentCreateArticleBinding? = null
     private val binding get() = _binding!!
@@ -54,17 +54,23 @@ constructor(
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Restore state after process death
-        savedInstanceState?.let { inState ->
-            (inState[CREATE_ARTICLE_VIEW_STATE_BUNDLE_KEY] as CreateArticleViewState?)?.let { viewState ->
+        savedInstanceState.let { inState ->
+            (inState?.get(ARTICLE_VIEW_STATE_BUNDLE_KEY) as ArticleViewState?)?.let { viewState ->
                 viewModel.setViewState(viewState)
             }
         }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
+        val viewState = viewModel.viewState.value
+
+        //clear the list. Don't want to save a large list to bundle.
+        viewState?.articleFields?.articleList = ArrayList()
+        viewState?.searchFields?.profileList = ArrayList()
+
         outState.putParcelable(
-            CREATE_ARTICLE_VIEW_STATE_BUNDLE_KEY,
-            viewModel.viewState.value
+            ARTICLE_VIEW_STATE_BUNDLE_KEY,
+            viewState
         )
         super.onSaveInstanceState(outState)
     }
@@ -108,7 +114,7 @@ constructor(
 
     private fun publishNewArticle() {
         var multipartBody: MultipartBody.Part? = null
-        viewModel.viewState.value?.articleFields?.newImageUri?.let { imageUri ->
+        viewModel.viewState.value?.newArticleFields?.newImageUri?.let { imageUri ->
             imageUri.path?.let { filePath ->
                 val imageFile = File(filePath)
                 Log.d(TAG, "CreateBlogFragment, imageFile: file: ${imageFile}")
@@ -126,21 +132,18 @@ constructor(
             }
         }
 
-        multipartBody?.let {
-
-            with(binding) {
-                viewModel.setStateEvent(
-                    CreateNewArticleEvent(
-                        articleTitle.text.toString(),
-                        articleDescription.text.toString(),
-                        articleBody.text.toString(),
-                        articleTags.text.toString(),
-                        it
-                    )
+        with(binding) {
+            viewModel.setStateEvent(
+                CreateNewArticleEvent(
+                    articleTitle.text.toString(),
+                    articleDescription.text.toString(),
+                    articleBody.text.toString(),
+                    articleTags.text.toString(),
+                    multipartBody
                 )
-            }
-            uiCommunicationListener.hideSoftKeyboard()
-        } ?: showErrorDialog(ERROR_MUST_SELECT_IMAGE)
+            )
+        }
+        uiCommunicationListener.hideSoftKeyboard()
 
     }
 
@@ -155,13 +158,13 @@ constructor(
 
     fun subscribeObservers() {
         viewModel.viewState.observe(viewLifecycleOwner, Observer { viewState ->
-            viewState.articleFields.let { articleFields ->
+            viewState.newArticleFields.let { newArticleFields ->
                 setArticleProperties(
-                    articleFields.newArticleTitle,
-                    articleFields.newArticleDescription,
-                    articleFields.newArticleBody,
-                    articleFields.newArticleTags,
-                    articleFields.newImageUri
+                    newArticleFields.newArticleTitle,
+                    newArticleFields.newArticleDescription,
+                    newArticleFields.newArticleBody,
+                    newArticleFields.newArticleTags,
+                    newArticleFields.newImageUri
                 )
             }
         })
@@ -175,6 +178,7 @@ constructor(
             stateMessage?.let {
                 if (it.response.message.equals(SUCCESS_ARTICLE_CREATED)) {
                     viewModel.clearNewArticleFields()
+                    findNavController().popBackStack()
                 }
                 uiCommunicationListener.onResponseReceived(
                     response = it.response,

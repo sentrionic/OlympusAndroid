@@ -9,10 +9,8 @@ import kotlinx.coroutines.withContext
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import xyz.harmonyapp.olympusblog.api.main.MainService
-import xyz.harmonyapp.olympusblog.api.main.dto.CommentDTO
 import xyz.harmonyapp.olympusblog.api.main.responses.ArticleListSearchResponse
 import xyz.harmonyapp.olympusblog.api.main.responses.ArticleResponse
-import xyz.harmonyapp.olympusblog.api.main.responses.CommentResponse
 import xyz.harmonyapp.olympusblog.di.main.MainScope
 import xyz.harmonyapp.olympusblog.models.Article
 import xyz.harmonyapp.olympusblog.models.ArticleAuthor
@@ -29,7 +27,6 @@ import xyz.harmonyapp.olympusblog.utils.*
 import xyz.harmonyapp.olympusblog.utils.ErrorHandling.Companion.ERROR_UNKNOWN
 import xyz.harmonyapp.olympusblog.utils.SuccessHandling.Companion.SUCCESS_ARTICLE_DELETED
 import xyz.harmonyapp.olympusblog.utils.SuccessHandling.Companion.SUCCESS_ARTICLE_UPDATED
-import xyz.harmonyapp.olympusblog.utils.SuccessHandling.Companion.SUCCESS_COMMENT_DELETED
 import xyz.harmonyapp.olympusblog.utils.SuccessHandling.Companion.SUCCESS_TOGGLE_BOOKMARK
 import xyz.harmonyapp.olympusblog.utils.SuccessHandling.Companion.SUCCESS_TOGGLE_FAVORITE
 import javax.inject.Inject
@@ -45,9 +42,7 @@ constructor(
 
     private val TAG: String = "AppDebug"
 
-    override fun searchArticles(
-        query: String,
-        order: String,
+    override fun getArticles(
         page: Int,
         stateEvent: StateEvent
     ): Flow<DataState<ArticleViewState>> {
@@ -58,15 +53,13 @@ constructor(
                 stateEvent = stateEvent,
                 apiCall = {
                     mainService.searchListArticlePosts(
-                        query = query,
-                        order = order,
                         page = page
                     )
                 },
                 cacheCall = {
                     articlesDao.returnOrderedQuery(
-                        query = query,
-                        order = order,
+                        query = "",
+                        order = "DESC",
                         page = page
                     )
                 }
@@ -118,6 +111,82 @@ constructor(
         }.result
     }
 
+    override fun searchArticles(
+        query: String,
+        order: String,
+        page: Int,
+        stateEvent: StateEvent
+    ): Flow<DataState<ArticleViewState>> {
+        var hasMore = false
+        return object :
+            NetworkBoundResource<ArticleListSearchResponse, List<ArticleAuthor>, ArticleViewState>(
+                dispatcher = IO,
+                stateEvent = stateEvent,
+                apiCall = {
+                    mainService.searchListArticlePosts(
+                        query = query,
+                        order = order,
+                        page = page
+                    )
+                },
+                cacheCall = {
+                    articlesDao.returnOrderedQuery(
+                        query = query,
+                        order = order,
+                        page = page
+                    )
+                }
+            ) {
+            override suspend fun updateCache(networkObject: ArticleListSearchResponse) {
+                Log.d(TAG, "Get Articles: $networkObject")
+                hasMore = networkObject.hasMore
+                withContext(IO) {
+                    for (article in networkObject.articles) {
+                        try {
+                            // Launch each insert as a separate job to be executed in parallel
+                            launch {
+                                Log.d(TAG, "updateLocalDb: inserting article: ${article}")
+                                articlesDao.insert(article.toArticle())
+                                articlesDao.insertAuthor(article.author)
+                            }
+                        } catch (e: Exception) {
+                            Log.e(
+                                TAG,
+                                "updateLocalDb: error updating cache data on article post with slug: ${article.slug}. " +
+                                        "${e.message}"
+                            )
+                        }
+                    }
+                }
+            }
+
+            override fun handleCacheSuccess(resultObj: List<ArticleAuthor>): DataState<ArticleViewState> {
+
+                val articleList: ArrayList<Article> = ArrayList()
+                for (articleResponse in resultObj) {
+                    articleList.add(
+                        articleResponse.toArticle()
+                    )
+                }
+
+                val viewState = ArticleViewState(
+                    articleFields = ArticleFields(
+                        articleList = articleList
+                    ),
+                    searchFields = SearchFields(
+                        isQueryExhausted = !hasMore
+                    )
+                )
+                return DataState.data(
+                    response = null,
+                    data = viewState,
+                    stateEvent = stateEvent
+                )
+            }
+
+        }.result
+    }
+
     override fun getFeed(
         page: Int,
         stateEvent: StateEvent
@@ -133,9 +202,9 @@ constructor(
                     )
                 },
                 cacheCall = {
-                    articlesDao.searchArticlesOrderByDateDESC(
+                    articlesDao.getFeed(
                         page = page,
-                        query = "",
+                        authorIds = articlesDao.getFollowedAuthors(),
                     )
                 }
             ) {
@@ -166,11 +235,9 @@ constructor(
 
                 val articleList: ArrayList<Article> = ArrayList()
                 for (articleResponse in resultObj) {
-                    if (articleResponse.author.following) {
-                        articleList.add(
-                            articleResponse.toArticle()
-                        )
-                    }
+                    articleList.add(
+                        articleResponse.toArticle()
+                    )
                 }
 
                 val viewState = ArticleViewState(
@@ -205,6 +272,76 @@ constructor(
                 },
                 cacheCall = {
                     articlesDao.getBookmarkedArticles(
+                        page = page
+                    )
+                }
+            ) {
+            override suspend fun updateCache(networkObject: ArticleListSearchResponse) {
+                hasMore = networkObject.hasMore
+                withContext(IO) {
+                    for (article in networkObject.articles) {
+                        try {
+                            // Launch each insert as a separate job to be executed in parallel
+                            launch {
+                                Log.d(TAG, "updateLocalDb: inserting article: ${article}")
+                                articlesDao.insert(article.toArticle())
+                                articlesDao.insertAuthor(article.author)
+                            }
+                        } catch (e: Exception) {
+                            Log.e(
+                                TAG,
+                                "updateLocalDb: error updating cache data on article post with slug: ${article.slug}. " +
+                                        "${e.message}"
+                            )
+                        }
+                    }
+                }
+            }
+
+            override fun handleCacheSuccess(resultObj: List<ArticleAuthor>): DataState<ArticleViewState> {
+
+                val articleList: ArrayList<Article> = ArrayList()
+                for (articleResponse in resultObj) {
+                    articleList.add(
+                        articleResponse.toArticle()
+                    )
+                }
+
+                val viewState = ArticleViewState(
+                    articleFields = ArticleFields(
+                        articleList = articleList,
+                        isQueryExhausted = !hasMore
+                    )
+                )
+                return DataState.data(
+                    response = null,
+                    data = viewState,
+                    stateEvent = stateEvent
+                )
+            }
+
+        }.result
+    }
+
+    override fun getArticlesByTag(
+        page: Int,
+        query: String,
+        stateEvent: StateEvent
+    ): Flow<DataState<ArticleViewState>> {
+        var hasMore = false
+        return object :
+            NetworkBoundResource<ArticleListSearchResponse, List<ArticleAuthor>, ArticleViewState>(
+                dispatcher = IO,
+                stateEvent = stateEvent,
+                apiCall = {
+                    mainService.searchListArticlePosts(
+                        tag = query,
+                        page = page
+                    )
+                },
+                cacheCall = {
+                    articlesDao.getArticlesByTag(
+                        query = query,
                         page = page
                     )
                 }
@@ -364,9 +501,15 @@ constructor(
 
             override fun handleCacheSuccess(resultObj: ArticleAuthor): DataState<ArticleViewState> {
 
+                val article = resultObj.toArticle()
+
                 val viewState = ArticleViewState(
                     viewArticleFields = ViewArticleFields(
-                        isAuthorOfArticle = false
+                        isAuthorOfArticle = false,
+                        article = article
+                    ),
+                    viewProfileFields = ViewProfileFields(
+                        profile = article.author
                     )
                 )
                 return when {
@@ -433,6 +576,53 @@ constructor(
                             stateEvent
                         )
                     }
+                }
+            }.getResult()
+        )
+    }
+
+    override fun createNewArticle(
+        title: RequestBody,
+        description: RequestBody,
+        body: RequestBody,
+        tagList: List<String>,
+        image: MultipartBody.Part?,
+        stateEvent: StateEvent
+    ) = flow {
+
+        val apiResult = safeApiCall(IO) {
+            mainService.createArticle(
+                title = title,
+                description = description,
+                body = body,
+                tagList = tagList,
+                image = image
+            )
+        }
+
+        emit(
+            object : ApiResponseHandler<ArticleViewState, ArticleResponse>(
+                response = apiResult,
+                stateEvent = stateEvent
+            ) {
+                override suspend fun handleSuccess(resultObj: ArticleResponse): DataState<ArticleViewState> {
+
+                    articlesDao.insert(resultObj.toArticle())
+                    val article = articlesDao.getArticleBySlug(resultObj.slug)
+
+                    return DataState.data(
+                        response = Response(
+                            message = SuccessHandling.SUCCESS_ARTICLE_CREATED,
+                            uiComponentType = UIComponentType.Dialog(),
+                            messageType = MessageType.Success()
+                        ),
+                        data = ArticleViewState(
+                            newArticleFields = NewArticleFields(
+                                newArticle = article.toArticle()
+                            )
+                        ),
+                        stateEvent = stateEvent
+                    )
                 }
             }.getResult()
         )
@@ -596,100 +786,4 @@ constructor(
             }.getResult()
         )
     }
-
-    override fun getArticleComments(
-        slug: String,
-        stateEvent: StateEvent
-    ) = flow {
-        val apiResult = safeApiCall(IO) {
-            mainService.getArticleComments(slug)
-        }
-        emit(
-            object : ApiResponseHandler<ArticleViewState, List<CommentResponse>>(
-                response = apiResult,
-                stateEvent = stateEvent
-            ) {
-                override suspend fun handleSuccess(
-                    resultObj: List<CommentResponse>
-                ): DataState<ArticleViewState> {
-
-                    return DataState.data(
-                        response = null,
-                        data = ArticleViewState(
-                            viewArticleFields = ViewArticleFields(
-                                commentList = resultObj
-                            )
-                        ),
-                        stateEvent = stateEvent
-                    )
-                }
-            }.getResult()
-        )
-    }
-
-    override fun postComment(
-        body: String,
-        slug: String,
-        stateEvent: StateEvent
-    ) = flow {
-        val apiResult = safeApiCall(IO) {
-            mainService.createComment(slug = slug, body = CommentDTO(body))
-        }
-        emit(
-            object : ApiResponseHandler<ArticleViewState, CommentResponse>(
-                response = apiResult,
-                stateEvent = stateEvent
-            ) {
-                override suspend fun handleSuccess(
-                    resultObj: CommentResponse
-                ): DataState<ArticleViewState> {
-
-                    return DataState.data(
-                        data = ArticleViewState(
-                            viewCommentsFields = ViewCommentsFields(
-                                comment = resultObj
-                            )
-                        ),
-                        response = Response(
-                            message = SUCCESS_COMMENT_DELETED,
-                            uiComponentType = UIComponentType.None(),
-                            messageType = MessageType.Success()
-                        ),
-                        stateEvent = stateEvent
-                    )
-                }
-            }.getResult()
-        )
-    }
-
-    override fun deleteComment(
-        slug: String,
-        id: Int,
-        stateEvent: StateEvent
-    ) = flow {
-        val apiResult = safeApiCall(IO) {
-            mainService.deleteComment(slug, id)
-        }
-        emit(
-            object : ApiResponseHandler<ArticleViewState, CommentResponse>(
-                response = apiResult,
-                stateEvent = stateEvent
-            ) {
-                override suspend fun handleSuccess(
-                    resultObj: CommentResponse
-                ): DataState<ArticleViewState> {
-
-                    return DataState.data(
-                        response = Response(
-                            message = SUCCESS_COMMENT_DELETED,
-                            uiComponentType = UIComponentType.None(),
-                            messageType = MessageType.Success()
-                        ),
-                        stateEvent = stateEvent
-                    )
-                }
-            }.getResult()
-        )
-    }
-
 }

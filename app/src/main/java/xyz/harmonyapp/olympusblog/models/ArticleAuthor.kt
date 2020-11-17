@@ -14,7 +14,7 @@ data class ArticleAuthor(
         entityColumn = "id"
     )
     val author: Author
-): Parcelable {
+) : Parcelable {
     fun toArticle(): Article {
         return Article(
             id = article.id,

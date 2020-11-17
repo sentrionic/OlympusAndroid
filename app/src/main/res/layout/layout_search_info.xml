@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout android:layout_width="match_parent"
+    android:layout_height="@dimen/recycler_loading_view_height"
+    xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAlignment="center"
+        android:text="Search for articles or profiles\nSearch term has to be at least\n 3 characters long"
+        android:layout_centerInParent="true"
+        android:padding="5dp"
+        android:textColor="@color/black"
+        android:drawablePadding="5dp"/>
+
+</RelativeLayout>

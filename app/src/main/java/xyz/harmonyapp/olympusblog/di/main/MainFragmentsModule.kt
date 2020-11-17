@@ -10,8 +10,7 @@ import io.noties.markwon.Markwon
 import io.noties.markwon.editor.MarkwonEditor
 import xyz.harmonyapp.olympusblog.fragments.main.account.AccountFragmentFactory
 import xyz.harmonyapp.olympusblog.fragments.main.article.ArticleFragmentFactory
-import xyz.harmonyapp.olympusblog.fragments.main.create.CreateArticleFragmentFactory
-import xyz.harmonyapp.olympusblog.fragments.main.profile.ProfileFragmentFactory
+import xyz.harmonyapp.olympusblog.fragments.main.search.SearchFragmentFactory
 import javax.inject.Named
 
 @Module
@@ -54,32 +53,18 @@ object MainFragmentsModule {
     @JvmStatic
     @MainScope
     @Provides
-    @Named("CreateArticleFragmentFactory")
-    fun provideCreateArticleFragmentFactory(
-        viewModelFactory: ViewModelProvider.Factory,
-        requestManager: RequestManager,
-        editor: MarkwonEditor
-    ): FragmentFactory {
-        return CreateArticleFragmentFactory(
-            viewModelFactory,
-            requestManager,
-            editor
-        )
-    }
-
-    @JvmStatic
-    @MainScope
-    @Provides
     @Named("ProfileFragmentFactory")
     fun provideProfileFragmentFactory(
         viewModelFactory: ViewModelProvider.Factory,
         requestManager: RequestManager,
-        requestOptions: RequestOptions
+        requestOptions: RequestOptions,
+        markwon: Markwon
     ): FragmentFactory {
-        return ProfileFragmentFactory(
+        return SearchFragmentFactory(
             viewModelFactory,
             requestManager,
-            requestOptions
+            requestOptions,
+            markwon
         )
     }
 

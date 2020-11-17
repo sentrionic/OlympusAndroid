@@ -20,9 +20,10 @@ import xyz.harmonyapp.olympusblog.ui.auth.AuthActivity
 import xyz.harmonyapp.olympusblog.ui.main.account.ChangePasswordFragment
 import xyz.harmonyapp.olympusblog.ui.main.account.UpdateAccountFragment
 import xyz.harmonyapp.olympusblog.ui.main.article.CommentFragment
+import xyz.harmonyapp.olympusblog.ui.main.article.CreateArticleFragment
 import xyz.harmonyapp.olympusblog.ui.main.article.UpdateArticleFragment
 import xyz.harmonyapp.olympusblog.ui.main.article.ViewArticleFragment
-import xyz.harmonyapp.olympusblog.ui.main.profile.ViewProfileFragment
+import xyz.harmonyapp.olympusblog.ui.main.search.ViewProfileFragment
 import xyz.harmonyapp.olympusblog.utils.BOTTOM_NAV_BACKSTACK_KEY
 import xyz.harmonyapp.olympusblog.utils.BottomNavController
 import xyz.harmonyapp.olympusblog.utils.BottomNavController.*
@@ -45,10 +46,6 @@ class MainActivity : BaseActivity(),
     @Inject
     @Named("ArticleFragmentFactory")
     lateinit var articleFragmentFactory: FragmentFactory
-
-    @Inject
-    @Named("CreateArticleFragmentFactory")
-    lateinit var createArticleFragmentFactory: FragmentFactory
 
     @Inject
     @Named("ProfileFragmentFactory")
@@ -156,6 +153,10 @@ class MainActivity : BaseActivity(),
 
         is UpdateAccountFragment -> {
             navController.navigate(R.id.action_updateAccountFragment_to_home)
+        }
+
+        is CreateArticleFragment -> {
+            navController.navigate(R.id.action_createArticleFragment_to_home)
         }
 
         is CommentFragment -> {

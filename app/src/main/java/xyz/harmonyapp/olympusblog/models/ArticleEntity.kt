@@ -1,7 +1,9 @@
 package xyz.harmonyapp.olympusblog.models
 
 import android.os.Parcelable
-import androidx.room.*
+import androidx.room.ColumnInfo
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import kotlinx.android.parcel.Parcelize
 
 @Parcelize
@@ -45,7 +47,7 @@ data class ArticleEntity(
     @ColumnInfo(name = "authorId")
     var authorId: Int,
 
-) : Parcelable {
+    ) : Parcelable {
     override fun toString(): String {
         return "ArticleEntity(id=$id, title='$title', description='$description', slug='$slug', body='$body', image='$image', createdAt='$createdAt', favoritesCount=$favoritesCount, favorited=$favorited, bookmarked=$bookmarked, tagList='$tagList', authorId=$authorId)"
     }

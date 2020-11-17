@@ -1,9 +1,8 @@
 package xyz.harmonyapp.olympusblog.persistence
 
-import android.icu.text.CaseMap
 import androidx.room.*
-import xyz.harmonyapp.olympusblog.models.ArticleEntity
 import xyz.harmonyapp.olympusblog.models.ArticleAuthor
+import xyz.harmonyapp.olympusblog.models.ArticleEntity
 import xyz.harmonyapp.olympusblog.models.Author
 import xyz.harmonyapp.olympusblog.utils.Constants.Companion.PAGINATION_PAGE_SIZE
 
@@ -22,9 +21,23 @@ interface ArticlesDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAuthor(author: Author): Long
 
+    @Query("SELECT id FROM authors WHERE following = 1")
+    suspend fun getFollowedAuthors(): List<Int>
+
     @Transaction
-    @Query("SELECT * FROM articles")
-    suspend fun getArticles(): List<ArticleAuthor>
+    @Query(
+        """
+        SELECT * FROM articles
+        WHERE authorId IN (:authorIds)
+        ORDER BY createdAt DESC
+        LIMIT (:page * :pageSize)
+        """
+    )
+    suspend fun getFeed(
+        page: Int,
+        authorIds: List<Int>,
+        pageSize: Int = PAGINATION_PAGE_SIZE
+    ): List<ArticleAuthor>
 
     @Transaction
     @Query(
@@ -134,4 +147,19 @@ interface ArticlesDao {
         id: Int,
         bookmarked: Boolean,
     )
+
+    @Transaction
+    @Query(
+        """
+        SELECT * FROM articles 
+        WHERE tagList LIKE '%' || :query || '%' 
+        ORDER BY createdAt DESC 
+        LIMIT (:page * :pageSize)
+        """
+    )
+    suspend fun getArticlesByTag(
+        query: String,
+        page: Int,
+        pageSize: Int = PAGINATION_PAGE_SIZE
+    ): List<ArticleAuthor>
 }

@@ -1,7 +1,6 @@
 package xyz.harmonyapp.olympusblog.api.main.responses
 
 import com.squareup.moshi.Json
-import xyz.harmonyapp.olympusblog.models.ArticleEntity
 
 class ArticleListSearchResponse(
 

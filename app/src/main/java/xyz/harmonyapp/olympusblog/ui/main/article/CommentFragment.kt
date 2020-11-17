@@ -1,33 +1,26 @@
 package xyz.harmonyapp.olympusblog.ui.main.article
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.RadioButton
-import android.widget.RadioGroup
-import android.widget.TextView
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.afollestad.materialdialogs.MaterialDialog
-import com.afollestad.materialdialogs.customview.customView
-import com.afollestad.materialdialogs.customview.getCustomView
 import com.afollestad.materialdialogs.input.input
 import com.bumptech.glide.RequestManager
 import xyz.harmonyapp.olympusblog.R
 import xyz.harmonyapp.olympusblog.api.main.responses.CommentResponse
 import xyz.harmonyapp.olympusblog.databinding.FragmentCommentBinding
 import xyz.harmonyapp.olympusblog.di.main.MainScope
-import xyz.harmonyapp.olympusblog.persistence.ArticleQueryUtils
 import xyz.harmonyapp.olympusblog.ui.AreYouSureCallback
 import xyz.harmonyapp.olympusblog.ui.main.article.state.ARTICLE_VIEW_STATE_BUNDLE_KEY
 import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleStateEvent.*
 import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleViewState
-import xyz.harmonyapp.olympusblog.ui.main.article.viewmodel.*
+import xyz.harmonyapp.olympusblog.ui.main.article.viewmodel.removeDeletedComment
+import xyz.harmonyapp.olympusblog.ui.main.article.viewmodel.setComment
 import xyz.harmonyapp.olympusblog.utils.*
 import javax.inject.Inject
 
@@ -61,6 +54,7 @@ constructor(
 
         //clear the list. Don't want to save a large list to bundle.
         viewState?.articleFields?.articleList = ArrayList()
+        viewState?.searchFields?.profileList = ArrayList()
 
         outState.putParcelable(
             ARTICLE_VIEW_STATE_BUNDLE_KEY,

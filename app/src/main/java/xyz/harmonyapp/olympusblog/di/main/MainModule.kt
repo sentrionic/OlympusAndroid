@@ -14,8 +14,8 @@ import xyz.harmonyapp.olympusblog.repository.main.account.AccountRepository
 import xyz.harmonyapp.olympusblog.repository.main.account.AccountRepositoryImpl
 import xyz.harmonyapp.olympusblog.repository.main.article.ArticleRepository
 import xyz.harmonyapp.olympusblog.repository.main.article.ArticleRepositoryImpl
-import xyz.harmonyapp.olympusblog.repository.main.create.CreateArticleRepository
-import xyz.harmonyapp.olympusblog.repository.main.create.CreateArticleRepositoryImpl
+import xyz.harmonyapp.olympusblog.repository.main.comment.CommentRepository
+import xyz.harmonyapp.olympusblog.repository.main.comment.CommentRepositoryImpl
 import xyz.harmonyapp.olympusblog.repository.main.profile.ProfileRepository
 import xyz.harmonyapp.olympusblog.repository.main.profile.ProfileRepositoryImpl
 import xyz.harmonyapp.olympusblog.session.SessionManager
@@ -78,21 +78,20 @@ object MainModule {
     @JvmStatic
     @MainScope
     @Provides
-    fun provideCreateArticleRepository(
-        mainService: MainService,
-        articlesDao: ArticlesDao,
-        sessionManager: SessionManager
-    ): CreateArticleRepository {
-        return CreateArticleRepositoryImpl(mainService, articlesDao, sessionManager)
-    }
-
-    @JvmStatic
-    @MainScope
-    @Provides
     fun provideProfileRepository(
         mainService: MainService,
         sessionManager: SessionManager
     ): ProfileRepository {
         return ProfileRepositoryImpl(mainService, sessionManager)
+    }
+
+    @JvmStatic
+    @MainScope
+    @Provides
+    fun provideCommentRepository(
+        mainService: MainService,
+        sessionManager: SessionManager
+    ): CommentRepository {
+        return CommentRepositoryImpl(mainService, sessionManager)
     }
 }

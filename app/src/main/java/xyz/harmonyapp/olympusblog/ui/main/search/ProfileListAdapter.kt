@@ -1,20 +1,13 @@
-package xyz.harmonyapp.olympusblog.ui.main.profile
+package xyz.harmonyapp.olympusblog.ui.main.search
 
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.*
 import com.bumptech.glide.RequestManager
-import com.bumptech.glide.load.engine.DiskCacheStrategy
-import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
-import xyz.harmonyapp.olympusblog.R
-import xyz.harmonyapp.olympusblog.databinding.LayoutArticleListItemBinding
 import xyz.harmonyapp.olympusblog.databinding.LayoutNoMoreResultsBinding
 import xyz.harmonyapp.olympusblog.databinding.LayoutProfileListItemBinding
-import xyz.harmonyapp.olympusblog.models.Article
 import xyz.harmonyapp.olympusblog.models.Author
-import xyz.harmonyapp.olympusblog.utils.DateUtils
 import xyz.harmonyapp.olympusblog.utils.GenericViewHolder
 
 class ProfileListAdapter(
@@ -158,7 +151,7 @@ class ProfileListAdapter(
 
         fun bind(item: Author) = with(binding) {
             itemView.setOnClickListener {
-                interaction?.onItemSelected(adapterPosition, item)
+                interaction?.onProfileSelected(bindingAdapterPosition, item)
             }
 
             requestManager
@@ -171,6 +164,6 @@ class ProfileListAdapter(
     }
 
     interface Interaction {
-        fun onItemSelected(position: Int, item: Author)
+        fun onProfileSelected(position: Int, item: Author)
     }
 }

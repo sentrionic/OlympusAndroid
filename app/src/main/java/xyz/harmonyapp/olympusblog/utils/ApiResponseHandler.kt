@@ -1,6 +1,5 @@
 package xyz.harmonyapp.olympusblog.utils
 
-import android.util.Log
 import xyz.harmonyapp.olympusblog.utils.ErrorHandling.Companion.NETWORK_ERROR
 
 abstract class ApiResponseHandler<ViewState, Data>(

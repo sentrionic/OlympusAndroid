@@ -7,7 +7,10 @@ import xyz.harmonyapp.olympusblog.models.ArticleEntity
 import xyz.harmonyapp.olympusblog.models.AuthToken
 import xyz.harmonyapp.olympusblog.models.Author
 
-@Database(entities = [AuthToken::class, AccountProperties::class, ArticleEntity::class, Author::class], version = 1)
+@Database(
+    entities = [AuthToken::class, AccountProperties::class, ArticleEntity::class, Author::class],
+    version = 1
+)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun getAuthTokenDao(): AuthTokenDao

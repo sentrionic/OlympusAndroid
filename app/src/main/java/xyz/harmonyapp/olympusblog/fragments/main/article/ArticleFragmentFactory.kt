@@ -7,10 +7,7 @@ import com.bumptech.glide.request.RequestOptions
 import io.noties.markwon.Markwon
 import io.noties.markwon.editor.MarkwonEditor
 import xyz.harmonyapp.olympusblog.di.main.MainScope
-import xyz.harmonyapp.olympusblog.ui.main.article.ArticleFragment
-import xyz.harmonyapp.olympusblog.ui.main.article.CommentFragment
-import xyz.harmonyapp.olympusblog.ui.main.article.UpdateArticleFragment
-import xyz.harmonyapp.olympusblog.ui.main.article.ViewArticleFragment
+import xyz.harmonyapp.olympusblog.ui.main.article.*
 import javax.inject.Inject
 
 @MainScope
@@ -38,6 +35,10 @@ constructor(
 
             UpdateArticleFragment::class.java.name -> {
                 UpdateArticleFragment(viewModelFactory, requestManager, editor)
+            }
+
+            CreateArticleFragment::class.java.name -> {
+                CreateArticleFragment(viewModelFactory, requestManager, editor)
             }
 
             CommentFragment::class.java.name -> {

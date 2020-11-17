@@ -4,11 +4,9 @@ import android.os.Bundle
 import android.util.Log
 import android.view.*
 import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
-import androidx.core.view.marginEnd
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
@@ -25,6 +23,7 @@ import xyz.harmonyapp.olympusblog.ui.main.article.state.ARTICLE_VIEW_STATE_BUNDL
 import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleStateEvent.*
 import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleViewState
 import xyz.harmonyapp.olympusblog.ui.main.article.viewmodel.*
+import xyz.harmonyapp.olympusblog.ui.main.search.state.SearchStateEvent.ToggleFollowEvent
 import xyz.harmonyapp.olympusblog.utils.*
 import xyz.harmonyapp.olympusblog.utils.SuccessHandling.Companion.SUCCESS_ARTICLE_DELETED
 import javax.inject.Inject
@@ -56,6 +55,7 @@ constructor(
 
         //clear the list. Don't want to save a large list to bundle.
         viewState?.articleFields?.articleList = ArrayList()
+        viewState?.searchFields?.profileList = ArrayList()
 
         outState.putParcelable(
             ARTICLE_VIEW_STATE_BUNDLE_KEY,
@@ -181,6 +181,22 @@ constructor(
                 )
             }
 
+            if (article.bookmarked) {
+                articleBookmark.setImageDrawable(
+                    ContextCompat.getDrawable(
+                        root.context,
+                        R.drawable.ic_baseline_bookmark_24
+                    )
+                )
+            } else {
+                articleBookmark.setImageDrawable(
+                    ContextCompat.getDrawable(
+                        root.context,
+                        R.drawable.ic_baseline_bookmark_border_24
+                    )
+                )
+            }
+
             articleFavorited.setOnClickListener {
                 viewModel.setStateEvent(ToggleFavoriteEvent())
             }
@@ -191,6 +207,16 @@ constructor(
 
             articleComments.setOnClickListener {
                 findNavController().navigate(R.id.action_viewArticleFragment_to_commentFragment)
+            }
+
+            if (article.author.id == viewModel.getCurrentUserId()) {
+                followButton.visibility = View.GONE
+            }
+
+            followButton.text = if (viewModel.getAuthor().following) "Unfollow" else "Follow"
+
+            followButton.setOnClickListener {
+                viewModel.setStateEvent(ToggleFollowEvent())
             }
         }
 

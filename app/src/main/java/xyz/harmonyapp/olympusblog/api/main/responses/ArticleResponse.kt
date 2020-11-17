@@ -42,7 +42,7 @@ data class ArticleResponse(
     @Json(name = "author")
     var author: Author,
 
-) {
+    ) {
 
     fun toArticle(): ArticleEntity {
         return ArticleEntity(

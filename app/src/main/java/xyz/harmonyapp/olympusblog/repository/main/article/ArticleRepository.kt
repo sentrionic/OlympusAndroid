@@ -5,13 +5,17 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import xyz.harmonyapp.olympusblog.di.main.MainScope
 import xyz.harmonyapp.olympusblog.models.Article
-import xyz.harmonyapp.olympusblog.models.ArticleEntity
 import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleViewState
 import xyz.harmonyapp.olympusblog.utils.DataState
 import xyz.harmonyapp.olympusblog.utils.StateEvent
 
 @MainScope
 interface ArticleRepository {
+
+    fun getArticles(
+        page: Int,
+        stateEvent: StateEvent
+    ): Flow<DataState<ArticleViewState>>
 
     fun searchArticles(
         query: String,
@@ -27,6 +31,12 @@ interface ArticleRepository {
 
     fun getBookmarkedArticles(
         page: Int,
+        stateEvent: StateEvent
+    ): Flow<DataState<ArticleViewState>>
+
+    fun getArticlesByTag(
+        page: Int,
+        query: String,
         stateEvent: StateEvent
     ): Flow<DataState<ArticleViewState>>
 
@@ -70,9 +80,12 @@ interface ArticleRepository {
         stateEvent: StateEvent
     ): Flow<DataState<ArticleViewState>>
 
-    fun getArticleComments(slug: String, stateEvent: StateEvent): Flow<DataState<ArticleViewState>>
-
-    fun postComment(body: String, slug: String, stateEvent: StateEvent): Flow<DataState<ArticleViewState>>
-
-    fun deleteComment(slug: String, id: Int, stateEvent: StateEvent): Flow<DataState<ArticleViewState>>
+    fun createNewArticle(
+        title: RequestBody,
+        description: RequestBody,
+        body: RequestBody,
+        tagList: List<String>,
+        image: MultipartBody.Part?,
+        stateEvent: StateEvent
+    ): Flow<DataState<ArticleViewState>>
 }

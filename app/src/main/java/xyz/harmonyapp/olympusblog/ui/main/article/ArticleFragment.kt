@@ -1,29 +1,18 @@
 package xyz.harmonyapp.olympusblog.ui.main.article
 
-import android.app.SearchManager
 import android.content.Context
-import android.content.Context.SEARCH_SERVICE
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Bundle
 import android.util.Log
 import android.view.*
-import android.view.inputmethod.EditorInfo
-import android.widget.EditText
-import android.widget.RadioButton
-import android.widget.RadioGroup
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.SearchView
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.afollestad.materialdialogs.MaterialDialog
-import com.afollestad.materialdialogs.customview.customView
-import com.afollestad.materialdialogs.customview.getCustomView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
 import com.bumptech.glide.request.RequestOptions
@@ -31,10 +20,7 @@ import xyz.harmonyapp.olympusblog.R
 import xyz.harmonyapp.olympusblog.databinding.FragmentArticleBinding
 import xyz.harmonyapp.olympusblog.di.main.MainScope
 import xyz.harmonyapp.olympusblog.models.Article
-import xyz.harmonyapp.olympusblog.persistence.ArticleQueryUtils.Companion.ARTICLES_ASC
-import xyz.harmonyapp.olympusblog.persistence.ArticleQueryUtils.Companion.ARTICLES_DESC
 import xyz.harmonyapp.olympusblog.ui.main.article.state.ARTICLE_VIEW_STATE_BUNDLE_KEY
-import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleStateEvent
 import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleStateEvent.*
 import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleViewState
 import xyz.harmonyapp.olympusblog.ui.main.article.viewmodel.*
@@ -57,7 +43,6 @@ constructor(
     private val binding get() = _binding!!
 
     private lateinit var recyclerAdapter: ArticleListAdapter
-    private lateinit var searchView: SearchView
     private var requestManager: RequestManager? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -80,6 +65,7 @@ constructor(
 
         //clear the list. Don't want to save a large list to bundle.
         viewState?.articleFields?.articleList = ArrayList()
+        viewState?.searchFields?.profileList = ArrayList()
 
         outState.putParcelable(
             ARTICLE_VIEW_STATE_BUNDLE_KEY,
@@ -100,12 +86,12 @@ constructor(
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setHasOptionsMenu(true)
-        (activity as AppCompatActivity).supportActionBar?.setDisplayShowTitleEnabled(false)
+        (activity as AppCompatActivity).supportActionBar?.setDisplayShowTitleEnabled(true)
         binding.swipeRefresh.setOnRefreshListener(this)
-
         setupGlide()
         initRecyclerView()
         subscribeObservers()
+        setupTabs()
     }
 
     private fun subscribeObservers() {
@@ -124,7 +110,6 @@ constructor(
                         articleList = viewState.articleFields.articleList,
                         isQueryExhausted = viewState.articleFields.isQueryExhausted ?: true,
                         isLoading = viewModel.areAnyJobsActive(),
-                        isHome = true
                     )
                 }
             }
@@ -157,127 +142,60 @@ constructor(
 
     private fun initRecyclerView() {
 
-        binding.articleRecyclerview.apply {
-            layoutManager = LinearLayoutManager(this@ArticleFragment.context)
-            val topSpacingDecorator = TopSpacingItemDecoration(30)
-            removeItemDecoration(topSpacingDecorator) // does nothing if not applied already
-            addItemDecoration(topSpacingDecorator)
+        with(binding) {
+            articleRecyclerview.apply {
+                layoutManager = LinearLayoutManager(this@ArticleFragment.context)
+                val topSpacingDecorator = TopSpacingItemDecoration(30)
+                removeItemDecoration(topSpacingDecorator) // does nothing if not applied already
+                addItemDecoration(topSpacingDecorator)
 
-            recyclerAdapter = ArticleListAdapter(
-                requestManager as RequestManager,
-                this@ArticleFragment
-            )
-            addOnScrollListener(object : RecyclerView.OnScrollListener() {
+                recyclerAdapter = ArticleListAdapter(
+                    requestManager as RequestManager,
+                    this@ArticleFragment
+                )
+                addOnScrollListener(object : RecyclerView.OnScrollListener() {
 
-                override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                    super.onScrollStateChanged(recyclerView, newState)
-                    val layoutManager = recyclerView.layoutManager as LinearLayoutManager
-                    val lastPosition = layoutManager.findLastVisibleItemPosition()
-                    if (lastPosition == recyclerAdapter.itemCount.minus(1)) {
-                        viewModel.nextPage()
+                    override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                        super.onScrollStateChanged(recyclerView, newState)
+                        val layoutManager = recyclerView.layoutManager as LinearLayoutManager
+                        val lastPosition = layoutManager.findLastVisibleItemPosition()
+                        if (lastPosition == recyclerAdapter.itemCount.minus(1)) {
+                            viewModel.nextPage()
+                        }
                     }
-                }
-            })
-            adapter = recyclerAdapter
-        }
+                })
+                adapter = recyclerAdapter
+            }
 
-    }
-
-
-    private fun initSearchView(menu: Menu) {
-        activity?.apply {
-            val searchManager: SearchManager = getSystemService(SEARCH_SERVICE) as SearchManager
-            searchView = menu.findItem(R.id.action_search).actionView as SearchView
-            searchView.setSearchableInfo(searchManager.getSearchableInfo(componentName))
-            searchView.maxWidth = Integer.MAX_VALUE
-            searchView.setIconifiedByDefault(true)
-            searchView.isSubmitButtonEnabled = true
-        }
-
-        // ENTER ON COMPUTER KEYBOARD OR ARROW ON VIRTUAL KEYBOARD
-        val searchPlate = searchView.findViewById(R.id.search_src_text) as EditText
-        searchPlate.setOnEditorActionListener { v, actionId, event ->
-
-            if (actionId == EditorInfo.IME_ACTION_UNSPECIFIED
-                || actionId == EditorInfo.IME_ACTION_SEARCH
-            ) {
-                val searchQuery = v.text.toString()
-                Log.e(
-                    TAG,
-                    "SearchView: (keyboard or arrow) executing search...: ${searchQuery}"
+            scrollUpButton.setOnClickListener {
+                articleRecyclerview.layoutManager?.smoothScrollToPosition(
+                    articleRecyclerview,
+                    null,
+                    0
                 )
-                viewModel.setQuery(searchQuery).let {
-                    onArticleSearchOrFilter()
-                }
             }
-            true
-        }
-
-        // SEARCH BUTTON CLICKED (in toolbar)
-        val searchButton = searchView.findViewById(R.id.search_go_btn) as View
-        searchButton.setOnClickListener {
-            val searchQuery = searchPlate.text.toString()
-            Log.e(TAG, "SearchView: (button) executing search...: ${searchQuery}")
-            viewModel.setQuery(searchQuery).let {
-                onArticleSearchOrFilter()
-            }
-
-        }
-    }
-
-    private fun showFilterDialog() {
-
-        activity?.let {
-            val dialog = MaterialDialog(it)
-                .noAutoDismiss()
-                .customView(R.layout.layout_article_filter)
-
-            val view = dialog.getCustomView()
-
-            var order = viewModel.getOrder()
-
-            when (order) {
-                ARTICLES_DESC -> {
-                    view.findViewById<RadioGroup>(R.id.order_group).check(R.id.filter_desc)
-                }
-                ARTICLES_ASC -> {
-                    view.findViewById<RadioGroup>(R.id.order_group).check(R.id.filter_asc)
-                }
-                else -> {
-                    view.findViewById<RadioGroup>(R.id.order_group).check(R.id.filter_top)
-                }
-            }
-
-            view.findViewById<TextView>(R.id.positive_button).setOnClickListener {
-                Log.d(TAG, "FilterDialog: apply filter.")
-
-                val selectedOrder = dialog.getCustomView().findViewById<RadioButton>(
-                    dialog.getCustomView()
-                        .findViewById<RadioGroup>(R.id.order_group).checkedRadioButtonId
-                )
-
-                order = selectedOrder.text.toString()
-
-                viewModel.saveFilterOptions(order).let {
-                    viewModel.setArticleOrder(order)
-                    onArticleSearchOrFilter()
-                }
-                dialog.dismiss()
-            }
-
-            view.findViewById<TextView>(R.id.negative_button).setOnClickListener {
-                Log.d(TAG, "FilterDialog: cancelling filter.")
-                dialog.dismiss()
-            }
-
-            dialog.show()
         }
     }
 
     private fun onArticleSearchOrFilter() {
-        viewModel.loadFirstPage().let {
-            resetUI()
+        if (binding.chipArticles.isChecked) {
+            viewModel.loadFirstPage().let {
+                resetUI()
+            }
         }
+
+        if (binding.chipFeed.isChecked) {
+            viewModel.loadFirstFeedPage().let {
+                resetUI()
+            }
+        }
+
+        if (binding.chipBookmarked.isChecked) {
+            viewModel.loadFirstBookmarkPage().let {
+                resetUI()
+            }
+        }
+
     }
 
     private fun resetUI() {
@@ -303,8 +221,7 @@ constructor(
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
-        inflater.inflate(R.menu.search_menu, menu)
-        initSearchView(menu)
+        inflater.inflate(R.menu.create_menu, menu)
     }
 
     override fun onRefresh() {
@@ -315,9 +232,8 @@ constructor(
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
 
         when (item.itemId) {
-            R.id.action_filter_settings -> {
-                showFilterDialog()
-                return true
+            R.id.action_create -> {
+                findNavController().navigate(R.id.action_articleFragment_to_createArticleFragment)
             }
         }
         return super.onOptionsItemSelected(item)
@@ -331,11 +247,31 @@ constructor(
         }
     }
 
-    override fun onChipSelected(index: Int) {
-        when (index) {
-            0 -> viewModel.setStateEvent(ArticleSearchEvent())
-            1 -> viewModel.setStateEvent(ArticleFeedEvent())
-            2 -> viewModel.setStateEvent(ArticleBookmarkEvent())
+    private fun setupTabs() {
+        with(binding) {
+            chipArticles.setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) {
+                    viewModel.loadFirstPage().let {
+                        resetUI()
+                    }
+                }
+            }
+
+            chipFeed.setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) {
+                    viewModel.loadFirstFeedPage().let {
+                        resetUI()
+                    }
+                }
+            }
+
+            chipBookmarked.setOnCheckedChangeListener { _, isChecked ->
+                if (isChecked) {
+                    viewModel.loadFirstBookmarkPage().let {
+                        resetUI()
+                    }
+                }
+            }
         }
     }
 
@@ -349,6 +285,7 @@ constructor(
     override fun onResume() {
         super.onResume()
         viewModel.refreshFromCache()
+        (activity as AppCompatActivity).supportActionBar?.title = "OlympusBlog"
     }
 
     override fun onPause() {

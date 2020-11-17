@@ -17,7 +17,8 @@
             android:id="@+id/chipGroup"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:singleSelection="true">
+            app:singleSelection="true"
+            app:selectionRequired="true">
 
             <com.google.android.material.chip.Chip
                 android:id="@+id/chipArticles"
@@ -32,7 +33,7 @@
                 app:chipBackgroundColor="@color/bg_chip_state_list" />
 
             <com.google.android.material.chip.Chip
-                android:id="@+id/chipFavorites"
+                android:id="@+id/chipFeed"
                 style="@style/Widget.MaterialComponents.Chip.Choice"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -56,6 +57,5 @@
         </com.google.android.material.chip.ChipGroup>
 
     </LinearLayout>
-
 
 </com.google.android.material.card.MaterialCardView>

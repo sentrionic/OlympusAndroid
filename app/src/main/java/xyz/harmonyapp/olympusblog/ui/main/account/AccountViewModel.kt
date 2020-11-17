@@ -3,7 +3,6 @@ package xyz.harmonyapp.olympusblog.ui.main.account
 import android.net.Uri
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -48,7 +47,7 @@ constructor(
                         stateEvent.email.toRequestBody("text/plain".toMediaTypeOrNull())
                     val username =
                         stateEvent.username.toRequestBody("text/plain".toMediaTypeOrNull())
-                    val bio = RequestBody.create("text/plain".toMediaTypeOrNull(), stateEvent.bio)
+                    val bio = stateEvent.bio.toRequestBody("text/plain".toMediaTypeOrNull())
                     accountRepository.saveAccountProperties(
                         stateEvent = stateEvent,
                         email = email,

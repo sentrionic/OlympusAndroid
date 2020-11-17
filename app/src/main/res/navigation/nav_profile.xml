@@ -3,17 +3,26 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_profile"
-    app:startDestination="@id/profileFragment">
+    app:startDestination="@id/searchFragment">
 
     <fragment
-        android:id="@+id/profileFragment"
-        android:name="xyz.harmonyapp.olympusblog.ui.main.profile.ProfileFragment"
-        android:label="Profiles"
-        tools:layout="@layout/fragment_profile">
+        android:id="@+id/searchFragment"
+        android:name="xyz.harmonyapp.olympusblog.ui.main.search.SearchFragment"
+        android:label="@string/fragment_article"
+        tools:layout="@layout/fragment_search">
+
 
         <action
-            android:id="@+id/action_profileFragment_to_viewProfileFragment"
+            android:id="@+id/action_searchFragment_to_viewProfileFragment"
             app:destination="@id/viewProfileFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+
+        <action
+            android:id="@+id/action_searchFragment_to_viewArticleFragment"
+            app:destination="@id/viewArticleFragment"
             app:enterAnim="@anim/slide_in_right"
             app:exitAnim="@anim/slide_out_left"
             app:popEnterAnim="@anim/slide_in_left"
@@ -23,14 +32,65 @@
 
     <fragment
         android:id="@+id/viewProfileFragment"
-        android:name="xyz.harmonyapp.olympusblog.ui.main.profile.ViewProfileFragment"
-        android:label="View Profile"
+        android:name="xyz.harmonyapp.olympusblog.ui.main.search.ViewProfileFragment"
+        android:label="@string/fragment_view_article"
         tools:layout="@layout/fragment_view_profile">
 
+        <action
+            android:id="@+id/action_viewProfileFragment_to_viewArticleFragment"
+            app:destination="@id/viewArticleFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
 
         <action
             android:id="@+id/action_viewProfileFragment_to_home"
-            app:destination="@id/profileFragment"
+            app:destination="@id/searchFragment"
+            app:enterAnim="@anim/fade_in"
+            app:exitAnim="@anim/fade_out"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/fade_out"
+            app:popUpTo="@+id/nav_profile"
+            app:popUpToInclusive="true" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/viewArticleFragment"
+        android:name="xyz.harmonyapp.olympusblog.ui.main.article.ViewArticleFragment"
+        android:label="@string/fragment_update_article"
+        tools:layout="@layout/fragment_view_article">
+
+        <action
+            android:id="@+id/action_viewArticleFragment_to_home"
+            app:destination="@id/searchFragment"
+            app:enterAnim="@anim/fade_in"
+            app:exitAnim="@anim/fade_out"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/fade_out"
+            app:popUpTo="@+id/nav_profile"
+            app:popUpToInclusive="true" />
+
+        <action
+            android:id="@+id/action_viewArticleFragment_to_commentFragment"
+            app:destination="@id/viewCommentFragment"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/viewCommentFragment"
+        android:name="xyz.harmonyapp.olympusblog.ui.main.article.CommentFragment"
+        android:label="@string/fragment_update_article"
+        tools:layout="@layout/fragment_view_article">
+
+        <action
+            android:id="@+id/action_viewCommentFragment_to_home"
+            app:destination="@id/viewArticleFragment"
             app:enterAnim="@anim/fade_in"
             app:exitAnim="@anim/fade_out"
             app:popEnterAnim="@anim/fade_in"

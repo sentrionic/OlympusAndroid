@@ -65,6 +65,7 @@ interface MainService {
         @Query("order") order: String? = null,
         @Query("limit") limit: Int = PAGINATION_PAGE_SIZE,
         @Query("author") author: String? = null,
+        @Query("tag") tag: String? = null,
         @Query("favorited") favorited: String? = null,
         @Query("p") page: Int? = null
     ): ArticleListSearchResponse

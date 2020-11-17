@@ -20,4 +20,4 @@ data class CommentResponse(
     @Json(name = "author")
     var author: Author,
 
-) : Parcelable
+    ) : Parcelable

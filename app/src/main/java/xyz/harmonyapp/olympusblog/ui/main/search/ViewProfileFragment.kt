@@ -1,37 +1,29 @@
-package xyz.harmonyapp.olympusblog.ui.main.profile
+package xyz.harmonyapp.olympusblog.ui.main.search
 
 import android.os.Bundle
-import android.util.Log
-import android.view.*
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
-import androidx.core.net.toUri
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.RequestManager
 import com.bumptech.glide.load.engine.DiskCacheStrategy
-import io.noties.markwon.Markwon
 import xyz.harmonyapp.olympusblog.R
-import xyz.harmonyapp.olympusblog.databinding.FragmentViewArticleBinding
 import xyz.harmonyapp.olympusblog.databinding.FragmentViewProfileBinding
 import xyz.harmonyapp.olympusblog.di.main.MainScope
 import xyz.harmonyapp.olympusblog.models.Article
-import xyz.harmonyapp.olympusblog.models.ArticleAuthor
 import xyz.harmonyapp.olympusblog.models.Author
-import xyz.harmonyapp.olympusblog.ui.AreYouSureCallback
 import xyz.harmonyapp.olympusblog.ui.main.article.ArticleListAdapter
-import xyz.harmonyapp.olympusblog.ui.main.article.state.ARTICLE_VIEW_STATE_BUNDLE_KEY
-import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleStateEvent.*
-import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleViewState
-import xyz.harmonyapp.olympusblog.ui.main.article.viewmodel.*
-import xyz.harmonyapp.olympusblog.ui.main.profile.BaseProfileFragment
-import xyz.harmonyapp.olympusblog.ui.main.profile.state.ProfileStateEvent
-import xyz.harmonyapp.olympusblog.ui.main.profile.state.ProfileStateEvent.*
-import xyz.harmonyapp.olympusblog.utils.*
-import xyz.harmonyapp.olympusblog.utils.SuccessHandling.Companion.SUCCESS_ARTICLE_DELETED
+import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleStateEvent
+import xyz.harmonyapp.olympusblog.ui.main.article.viewmodel.setArticle
+import xyz.harmonyapp.olympusblog.ui.main.article.viewmodel.updateProfileArticleListItem
+import xyz.harmonyapp.olympusblog.ui.main.search.state.SearchStateEvent.*
+import xyz.harmonyapp.olympusblog.utils.StateMessageCallback
+import xyz.harmonyapp.olympusblog.utils.SuccessHandling
+import xyz.harmonyapp.olympusblog.utils.TopSpacingItemDecoration
 import javax.inject.Inject
 
 @MainScope
@@ -40,7 +32,7 @@ class ViewProfileFragment
 constructor(
     viewModelFactory: ViewModelProvider.Factory,
     private val requestManager: RequestManager,
-) : BaseProfileFragment(viewModelFactory),
+) : BaseSearchFragment(viewModelFactory),
     ArticleListAdapter.Interaction {
 
     private var _binding: FragmentViewProfileBinding? = null
@@ -97,6 +89,12 @@ constructor(
         })
 
         viewModel.stateMessage.observe(viewLifecycleOwner, Observer { stateMessage ->
+
+            if (stateMessage?.response?.message.equals(SuccessHandling.SUCCESS_TOGGLE_FAVORITE)
+                || stateMessage?.response?.message.equals(SuccessHandling.SUCCESS_TOGGLE_BOOKMARK)
+            ) {
+                viewModel.updateProfileArticleListItem()
+            }
 
             stateMessage?.let {
                 uiCommunicationListener.onResponseReceived(
@@ -164,7 +162,7 @@ constructor(
                 if (isChecked) viewModel.setStateEvent(GetAuthorArticlesEvent())
             }
 
-            chipFavorites.setOnCheckedChangeListener { _, isChecked ->
+            chipFeed.setOnCheckedChangeListener { _, isChecked ->
                 if (isChecked) viewModel.setStateEvent(GetAuthorFavoritesEvent())
             }
         }
@@ -179,22 +177,21 @@ constructor(
     }
 
     override fun onItemSelected(position: Int, item: Article) {
-        return
-    }
-
-    override fun restoreListPosition() {
-        return
+        viewModel.setArticle(item)
+        findNavController().navigate(R.id.action_viewProfileFragment_to_viewArticleFragment)
     }
 
     override fun toggleFavorite(position: Int, item: Article) {
-        return
+        viewModel.setArticle(item)
+        viewModel.setStateEvent(ArticleStateEvent.ToggleFavoriteEvent())
     }
 
     override fun toggleBookmark(position: Int, item: Article) {
-        return
+        viewModel.setArticle(item)
+        viewModel.setStateEvent(ArticleStateEvent.ToggleBookmarkEvent())
     }
 
-    override fun onChipSelected(index: Int) {
+    override fun restoreListPosition() {
         return
     }
 }

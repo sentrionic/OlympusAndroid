@@ -1,10 +1,10 @@
-package xyz.harmonyapp.olympusblog.ui.main.profile.state
+package xyz.harmonyapp.olympusblog.ui.main.search.state
 
 import xyz.harmonyapp.olympusblog.utils.StateEvent
 
-sealed class ProfileStateEvent : StateEvent {
+sealed class SearchStateEvent : StateEvent {
 
-    class ProfileSearchEvent : ProfileStateEvent() {
+    class ProfileSearchEvent : SearchStateEvent() {
         override fun errorInfo(): String {
             return "Error searching for profiles."
         }
@@ -14,7 +14,7 @@ sealed class ProfileStateEvent : StateEvent {
         }
     }
 
-    class ToggleFollowEvent : ProfileStateEvent() {
+    class ToggleFollowEvent : SearchStateEvent() {
         override fun errorInfo(): String {
             return "Error following author."
         }
@@ -24,7 +24,7 @@ sealed class ProfileStateEvent : StateEvent {
         }
     }
 
-    class GetAuthorArticlesEvent : ProfileStateEvent() {
+    class GetAuthorArticlesEvent : SearchStateEvent() {
         override fun errorInfo(): String {
             return "Error retrieving articles."
         }
@@ -34,7 +34,7 @@ sealed class ProfileStateEvent : StateEvent {
         }
     }
 
-    class GetAuthorFavoritesEvent : ProfileStateEvent() {
+    class GetAuthorFavoritesEvent : SearchStateEvent() {
         override fun errorInfo(): String {
             return "Error retrieving articles."
         }
@@ -44,7 +44,7 @@ sealed class ProfileStateEvent : StateEvent {
         }
     }
 
-    class None : ProfileStateEvent() {
+    class None : SearchStateEvent() {
         override fun errorInfo(): String {
             return "None."
         }

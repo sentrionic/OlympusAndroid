@@ -1,10 +1,19 @@
 package xyz.harmonyapp.olympusblog.ui.main.article.state
 
 import okhttp3.MultipartBody
-import xyz.harmonyapp.olympusblog.api.main.responses.CommentResponse
 import xyz.harmonyapp.olympusblog.utils.StateEvent
 
 sealed class ArticleStateEvent : StateEvent {
+
+    class GetArticlesEvent(val clearLayoutManagerState: Boolean = true) : ArticleStateEvent() {
+        override fun errorInfo(): String {
+            return "Error retrieving articles."
+        }
+
+        override fun toString(): String {
+            return "GetArticlesEvent"
+        }
+    }
 
     class ArticleSearchEvent(val clearLayoutManagerState: Boolean = true) : ArticleStateEvent() {
         override fun errorInfo(): String {
@@ -33,6 +42,16 @@ sealed class ArticleStateEvent : StateEvent {
 
         override fun toString(): String {
             return "ArticleBookmarkEvent"
+        }
+    }
+
+    class ArticlesByTagEvent(val clearLayoutManagerState: Boolean = true) : ArticleStateEvent() {
+        override fun errorInfo(): String {
+            return "Error retrieving articles."
+        }
+
+        override fun toString(): String {
+            return "ArticlesByTagEvent"
         }
     }
 
@@ -66,6 +85,22 @@ sealed class ArticleStateEvent : StateEvent {
         }
     }
 
+    data class CreateNewArticleEvent(
+        val title: String,
+        val description: String,
+        val body: String,
+        val tags: String,
+        val image: MultipartBody.Part?
+    ) : ArticleStateEvent() {
+        override fun errorInfo(): String {
+            return "Unable to create a new article."
+        }
+
+        override fun toString(): String {
+            return "CreateNewArticleEvent"
+        }
+    }
+
     data class UpdateArticleEvent(
         val title: String,
         val description: String,
@@ -83,7 +118,7 @@ sealed class ArticleStateEvent : StateEvent {
 
     }
 
-    class ToggleFavoriteEvent: ArticleStateEvent() {
+    class ToggleFavoriteEvent : ArticleStateEvent() {
         override fun errorInfo(): String {
             return "Error changing favorites status."
         }
@@ -93,7 +128,7 @@ sealed class ArticleStateEvent : StateEvent {
         }
     }
 
-    class ToggleBookmarkEvent: ArticleStateEvent() {
+    class ToggleBookmarkEvent : ArticleStateEvent() {
         override fun errorInfo(): String {
             return "Error changing bookmark status."
         }
@@ -103,7 +138,7 @@ sealed class ArticleStateEvent : StateEvent {
         }
     }
 
-    class GetArticleCommentsEvent: ArticleStateEvent() {
+    class GetArticleCommentsEvent : ArticleStateEvent() {
         override fun errorInfo(): String {
             return "Error getting article comments."
         }
@@ -113,7 +148,7 @@ sealed class ArticleStateEvent : StateEvent {
         }
     }
 
-    data class PostCommentEvent(val body: String): ArticleStateEvent() {
+    data class PostCommentEvent(val body: String) : ArticleStateEvent() {
         override fun errorInfo(): String {
             return "Error posting article comment."
         }
@@ -123,7 +158,7 @@ sealed class ArticleStateEvent : StateEvent {
         }
     }
 
-    class DeleteCommentEvent: ArticleStateEvent() {
+    class DeleteCommentEvent : ArticleStateEvent() {
         override fun errorInfo(): String {
             return "Error deleting article comment."
         }

@@ -4,6 +4,8 @@ import android.net.Uri
 import android.os.Parcelable
 import xyz.harmonyapp.olympusblog.api.main.responses.CommentResponse
 import xyz.harmonyapp.olympusblog.models.Article
+import xyz.harmonyapp.olympusblog.models.Author
+import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleViewState
 
 fun ArticleViewModel.setQuery(query: String) {
     val update = getCurrentViewStateOrNew()
@@ -38,6 +40,7 @@ fun ArticleViewModel.setCommentsList(comments: List<CommentResponse>) {
 fun ArticleViewModel.setQueryExhausted(isExhausted: Boolean) {
     val update = getCurrentViewStateOrNew()
     update.articleFields.isQueryExhausted = isExhausted
+    update.searchFields.isQueryExhausted = isExhausted
     setViewState(update)
 }
 
@@ -94,6 +97,33 @@ fun ArticleViewModel.updateListItem() {
         setViewState(update)
     }
 }
+
+fun ArticleViewModel.addNewArticle(article: Article) {
+    val update = getCurrentViewStateOrNew()
+    val list = update.articleFields.articleList?.toMutableList()
+    if (list != null) {
+        list.add(0, article)
+        update.articleFields.articleList = list
+        setViewState(update)
+    }
+}
+
+fun ArticleViewModel.updateProfileArticleListItem() {
+    val update = getCurrentViewStateOrNew()
+    val list = update.viewProfileFields.articleList?.toMutableList()
+    if (list != null) {
+        val newArticle = getArticle()
+        for (i in 0 until list.size) {
+            if (list[i].id == newArticle.id) {
+                list[i] = newArticle
+                break
+            }
+        }
+        update.viewProfileFields.articleList = list
+        setViewState(update)
+    }
+}
+
 
 fun ArticleViewModel.setLayoutManagerState(layoutManagerState: Parcelable) {
     val update = getCurrentViewStateOrNew()
@@ -177,3 +207,38 @@ fun ArticleViewModel.removeDeletedComment() {
     }
 }
 
+fun ArticleViewModel.setProfile(author: Author) {
+    val update = getCurrentViewStateOrNew()
+    update.viewProfileFields.profile = author
+    setViewState(update)
+}
+
+fun ArticleViewModel.setProfileListData(profileList: List<Author>) {
+    val update = getCurrentViewStateOrNew()
+    update.searchFields.profileList = profileList
+    setViewState(update)
+}
+
+fun ArticleViewModel.setNewArticleFields(
+    title: String?,
+    description: String?,
+    body: String?,
+    tags: String?,
+    uri: Uri?
+) {
+    val update = getCurrentViewStateOrNew()
+    val newArticleFields = update.newArticleFields
+    title?.let { newArticleFields.newArticleTitle = it }
+    body?.let { newArticleFields.newArticleBody = it }
+    description?.let { newArticleFields.newArticleDescription = it }
+    tags?.let { newArticleFields.newArticleTags = it }
+    uri?.let { newArticleFields.newImageUri = it }
+    update.newArticleFields = newArticleFields
+    setViewState(update)
+}
+
+fun ArticleViewModel.clearNewArticleFields() {
+    val update = getCurrentViewStateOrNew()
+    update.newArticleFields = ArticleViewState.NewArticleFields()
+    setViewState(update)
+}

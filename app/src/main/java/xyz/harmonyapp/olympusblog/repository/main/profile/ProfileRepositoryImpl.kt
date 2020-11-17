@@ -10,9 +10,9 @@ import xyz.harmonyapp.olympusblog.models.Article
 import xyz.harmonyapp.olympusblog.models.Author
 import xyz.harmonyapp.olympusblog.repository.safeApiCall
 import xyz.harmonyapp.olympusblog.session.SessionManager
-import xyz.harmonyapp.olympusblog.ui.main.profile.state.ProfileViewState
-import xyz.harmonyapp.olympusblog.ui.main.profile.state.ProfileViewState.ProfileFields
-import xyz.harmonyapp.olympusblog.ui.main.profile.state.ProfileViewState.ViewProfileFields
+import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleViewState
+import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleViewState.SearchFields
+import xyz.harmonyapp.olympusblog.ui.main.article.state.ArticleViewState.ViewProfileFields
 import xyz.harmonyapp.olympusblog.utils.ApiResponseHandler
 import xyz.harmonyapp.olympusblog.utils.DataState
 import xyz.harmonyapp.olympusblog.utils.StateEvent
@@ -36,20 +36,20 @@ constructor(
             mainService.searchProfiles(query)
         }
         emit(
-            object : ApiResponseHandler<ProfileViewState, List<Author>>(
+            object : ApiResponseHandler<ArticleViewState, List<Author>>(
                 response = apiResult,
                 stateEvent = stateEvent
             ) {
                 override suspend fun handleSuccess(
                     resultObj: List<Author>
-                ): DataState<ProfileViewState> {
+                ): DataState<ArticleViewState> {
 
                     Log.d(TAG, "Profiles: $resultObj")
 
                     return DataState.data(
                         response = null,
-                        data = ProfileViewState(
-                            profileFields = ProfileFields(
+                        data = ArticleViewState(
+                            searchFields = SearchFields(
                                 profileList = resultObj
                             )
                         ),
@@ -72,17 +72,17 @@ constructor(
             }
         }
         emit(
-            object : ApiResponseHandler<ProfileViewState, Author>(
+            object : ApiResponseHandler<ArticleViewState, Author>(
                 response = apiResult,
                 stateEvent = stateEvent
             ) {
                 override suspend fun handleSuccess(
                     resultObj: Author
-                ): DataState<ProfileViewState> {
+                ): DataState<ArticleViewState> {
 
                     return DataState.data(
                         response = null,
-                        data = ProfileViewState(
+                        data = ArticleViewState(
                             viewProfileFields = ViewProfileFields(
                                 profile = resultObj
                             )
@@ -104,13 +104,13 @@ constructor(
             )
         }
         emit(
-            object : ApiResponseHandler<ProfileViewState, ArticleListSearchResponse>(
+            object : ApiResponseHandler<ArticleViewState, ArticleListSearchResponse>(
                 response = apiResult,
                 stateEvent = stateEvent
             ) {
                 override suspend fun handleSuccess(
                     resultObj: ArticleListSearchResponse
-                ): DataState<ProfileViewState> {
+                ): DataState<ArticleViewState> {
 
                     val list = mutableListOf<Article>()
                     resultObj.articles.forEach { article ->
@@ -134,7 +134,7 @@ constructor(
 
                     return DataState.data(
                         response = null,
-                        data = ProfileViewState(
+                        data = ArticleViewState(
                             viewProfileFields = ViewProfileFields(
                                 articleList = list
                             )
@@ -156,13 +156,13 @@ constructor(
             )
         }
         emit(
-            object : ApiResponseHandler<ProfileViewState, ArticleListSearchResponse>(
+            object : ApiResponseHandler<ArticleViewState, ArticleListSearchResponse>(
                 response = apiResult,
                 stateEvent = stateEvent
             ) {
                 override suspend fun handleSuccess(
                     resultObj: ArticleListSearchResponse
-                ): DataState<ProfileViewState> {
+                ): DataState<ArticleViewState> {
 
                     val list = mutableListOf<Article>()
                     resultObj.articles.forEach { article ->
@@ -186,7 +186,7 @@ constructor(
 
                     return DataState.data(
                         response = null,
-                        data = ProfileViewState(
+                        data = ArticleViewState(
                             viewProfileFields = ViewProfileFields(
                                 articleList = list
                             )

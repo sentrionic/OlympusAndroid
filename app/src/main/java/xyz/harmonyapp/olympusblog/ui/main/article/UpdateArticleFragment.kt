@@ -16,10 +16,8 @@ import com.theartofdev.edmodo.cropper.CropImage
 import com.theartofdev.edmodo.cropper.CropImageView
 import io.noties.markwon.editor.MarkwonEditor
 import io.noties.markwon.editor.MarkwonEditorTextWatcher
-import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import xyz.harmonyapp.olympusblog.R
 import xyz.harmonyapp.olympusblog.databinding.FragmentUpdateArticleBinding
@@ -68,6 +66,7 @@ constructor(
 
         //clear the list. Don't want to save a large list to bundle.
         viewState?.articleFields?.articleList = ArrayList()
+        viewState?.searchFields?.profileList = ArrayList()
 
         outState.putParcelable(
             ARTICLE_VIEW_STATE_BUNDLE_KEY,

@@ -1,4 +1,4 @@
-package xyz.harmonyapp.olympusblog.ui.main.profile
+package xyz.harmonyapp.olympusblog.ui.main.search
 
 import android.content.Context
 import android.os.Bundle
@@ -14,17 +14,15 @@ import androidx.navigation.ui.NavigationUI
 import xyz.harmonyapp.olympusblog.R
 import xyz.harmonyapp.olympusblog.ui.UICommunicationListener
 import xyz.harmonyapp.olympusblog.ui.main.article.viewmodel.ArticleViewModel
-import xyz.harmonyapp.olympusblog.ui.main.profile.state.ProfileViewModel
-import xyz.harmonyapp.olympusblog.ui.main.profile.state.ProfileViewState
 
-abstract class BaseProfileFragment
+abstract class BaseSearchFragment
 constructor(
     private val viewModelFactory: ViewModelProvider.Factory
 ) : Fragment() {
 
     val TAG: String = "AppDebug"
 
-    val viewModel: ProfileViewModel by viewModels {
+    val viewModel: ArticleViewModel by viewModels {
         viewModelFactory
     }
 
@@ -32,7 +30,7 @@ constructor(
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        setupActionBarWithNavController(R.id.profileFragment, activity as AppCompatActivity)
+        setupActionBarWithNavController(R.id.searchFragment, activity as AppCompatActivity)
         setupChannel()
     }
 

@@ -71,7 +71,10 @@ object AppModule {
     @JvmStatic
     @Singleton
     @Provides
-    fun provideOkHttpClient(cookieJar: ClearableCookieJar, interceptor: HttpLoggingInterceptor): OkHttpClient {
+    fun provideOkHttpClient(
+        cookieJar: ClearableCookieJar,
+        interceptor: HttpLoggingInterceptor
+    ): OkHttpClient {
         return OkHttpClient
             .Builder()
             .cookieJar(cookieJar)

@@ -11,11 +11,6 @@
         android:icon="@drawable/ic_search"
         />
 
-    <item android:id="@+id/menu_nav_create_article"
-          android:title="@string/create"
-          android:icon="@drawable/ic_share"
-    />
-
     <item android:id="@+id/menu_nav_account"
           android:title="@string/account"
           android:icon="@drawable/ic_profile"/>

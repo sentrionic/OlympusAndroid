@@ -84,3 +84,7 @@ fun getDummyAuthor(): Author {
 fun getDummyComment(): CommentResponse {
     return CommentResponse(-1, "", "", getDummyAuthor())
 }
+
+fun ArticleViewModel.getAuthor(): Author {
+    return getCurrentViewStateOrNew().viewProfileFields.profile ?: getDummyAuthor()
+}
